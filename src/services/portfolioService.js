@@ -1,4 +1,4 @@
-import { apiGet, apiPut } from "./apiClient";
+import { apiGet, apiPut, apiDelete } from "./apiClient";
 
 const BASE_ENDPOINT = "/api/v1/portfolios";
 
@@ -82,6 +82,22 @@ export async function getShowcasedPortfolios(page = 1, limit = 100) {
     return response;
   } catch (error) {
     console.error("Failed to get showcased portfolios:", error);
+    throw error;
+  }
+}
+
+/**
+ * Delete portfolio
+ * DELETE /api/v1/portfolios/:id
+ * @param {string} id - Portfolio ID
+ * @returns {Promise<Object>} Delete response
+ */
+export async function deletePortfolio(id) {
+  try {
+    const response = await apiDelete(`${BASE_ENDPOINT}/${id}`);
+    return response;
+  } catch (error) {
+    console.error("Failed to delete portfolio:", error);
     throw error;
   }
 }

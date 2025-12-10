@@ -1,8 +1,10 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Button } from "./Button";
 import { Input } from "./Input";
 import { TeamMemberInput } from "./TeamMemberInput";
 import { TagsInput } from "./TagsInput";
+import { Upload, X, Image as ImageIcon } from "lucide-react";
+import { uploadThumbnail } from "../services/uploadService";
 
 /**
  * EditForm component untuk edit project/portfolio metadata
@@ -18,9 +20,13 @@ export function EditForm({ item, type, onSubmit, onCancel }) {
   const [youtubeLink, setYoutubeLink] = useState("");
   const [tags, setTags] = useState([]);
   const [thumbnailUrl, setThumbnailUrl] = useState("");
+  const [thumbnailFile, setThumbnailFile] = useState(null);
+  const [thumbnailPreview, setThumbnailPreview] = useState(null);
+  const [isUploading, setIsUploading] = useState(false);
   const [isShowcased, setIsShowcased] = useState(true);
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
+  const fileInputRef = useRef(null);
   
   // Pre-fill form dengan existing data
   useEffect(() => {
@@ -31,6 +37,8 @@ export function EditForm({ item, type, onSubmit, onCancel }) {
       setYoutubeLink(item.youtube_link || "");
       setTags(item.tags || []);
       setThumbnailUrl(item.thumbnail_url || "");
+      setThumbnailPreview(item.thumbnail_url || null);
+      setThumbnailFile(null);
       // is_showcased default to true if not set
       setIsShowcased(item.is_showcased !== false);
     }
@@ -67,10 +75,7 @@ export function EditForm({ item, type, onSubmit, onCancel }) {
       newErrors.thumbnailUrl = "Please enter a valid URL";
     }
     
-    // Team members validation
-    if (teamMembers.length === 0) {
-      newErrors.teamMembers = "At least one team member is required";
-    }
+    // Team members is optional - no validation needed
     
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -85,6 +90,47 @@ export function EditForm({ item, type, onSubmit, onCancel }) {
     }
   };
   
+  const handleFileSelect = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type
+    const allowedTypes = ["image/jpeg", "image/jpg", "image/png", "image/webp", "image/gif"];
+    if (!allowedTypes.includes(file.type)) {
+      setErrors({ thumbnail: `Invalid file type. Allowed: ${allowedTypes.join(", ")}` });
+      return;
+    }
+
+    // Validate file size (max 5MB)
+    const maxSize = 5 * 1024 * 1024; // 5MB
+    if (file.size > maxSize) {
+      setErrors({ thumbnail: "File size exceeds 5MB limit" });
+      return;
+    }
+
+    setThumbnailFile(file);
+    setErrors({ ...errors, thumbnail: null });
+
+    // Create preview
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setThumbnailPreview(reader.result);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleRemoveFile = () => {
+    setThumbnailFile(null);
+    setThumbnailPreview(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
+    // Keep existing URL if available
+    if (item?.thumbnail_url) {
+      setThumbnailPreview(item.thumbnail_url);
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     
@@ -93,15 +139,35 @@ export function EditForm({ item, type, onSubmit, onCancel }) {
     }
     
     setLoading(true);
+    setIsUploading(false);
     
     try {
+      let finalThumbnailUrl = thumbnailUrl.trim() || null;
+
+      // Upload file if selected
+      if (thumbnailFile) {
+        setIsUploading(true);
+        console.log("📤 [EditForm] Uploading thumbnail...");
+        
+        const uploadResult = await uploadThumbnail(thumbnailFile, type, item?.id);
+        
+        if (uploadResult.success) {
+          finalThumbnailUrl = uploadResult.url;
+          console.log("✅ [EditForm] Upload successful:", finalThumbnailUrl);
+        } else {
+          throw new Error(uploadResult.error || "Failed to upload thumbnail");
+        }
+        
+        setIsUploading(false);
+      }
+
       const formData = {
         showcase_title: title.trim(),
         showcase_description: description.trim(),
-        team_members: teamMembers,
+        team_members: teamMembers.length > 0 ? teamMembers : [], // Allow empty array
         youtube_link: youtubeLink.trim() || null,
-        tags: tags,
-        thumbnail_url: thumbnailUrl.trim() || null,
+        tags: tags.length > 0 ? tags : [], // Allow empty array
+        thumbnail_url: finalThumbnailUrl,
         is_showcased: isShowcased,
       };
       
@@ -109,6 +175,7 @@ export function EditForm({ item, type, onSubmit, onCancel }) {
     } catch (error) {
       console.error("Form submission error:", error);
       setErrors({ submit: error.message || "Failed to save changes" });
+      setIsUploading(false);
     } finally {
       setLoading(false);
     }
@@ -170,14 +237,16 @@ export function EditForm({ item, type, onSubmit, onCancel }) {
       {/* Team Members */}
       <div>
         <label className="block mb-2 text-sm font-medium text-[var(--foreground)]">
-          Team Members <span className="text-red-500">*</span>
+          Team Members (Optional)
         </label>
         <TeamMemberInput
           members={teamMembers}
           onChange={setTeamMembers}
         />
-        {errors.teamMembers && (
-          <p className="text-sm text-red-500 mt-1">{errors.teamMembers}</p>
+        {teamMembers.length === 0 && (
+          <p className="text-sm text-[var(--foreground)]/60 mt-1">
+            No team members added. You can add them later.
+          </p>
         )}
       </div>
       
@@ -199,26 +268,96 @@ export function EditForm({ item, type, onSubmit, onCancel }) {
         <TagsInput tags={tags} onChange={setTags} />
       </div>
       
-      {/* Thumbnail URL */}
+      {/* Thumbnail Upload */}
       <div>
-        <Input
-          label="Thumbnail URL (Optional)"
-          type="url"
-          value={thumbnailUrl}
-          onChange={(e) => setThumbnailUrl(e.target.value)}
-          placeholder="https://example.com/image.jpg"
-          error={errors.thumbnailUrl}
-        />
-        {thumbnailUrl && isValidUrl(thumbnailUrl) && (
-          <div className="mt-2">
-            <img
-              src={thumbnailUrl}
-              alt="Thumbnail preview"
-              className="w-full h-32 object-cover rounded-lg border border-[var(--border)]"
-              onError={(e) => {
-                e.target.style.display = "none";
-              }}
+        <label className="block mb-2 text-sm font-medium text-[var(--foreground)]">
+          Thumbnail (Optional)
+        </label>
+        
+        {/* File Upload */}
+        <div className="space-y-3">
+          {/* File Input */}
+          <div className="flex items-center gap-3">
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/jpeg,image/jpg,image/png,image/webp,image/gif"
+              onChange={handleFileSelect}
+              className="hidden"
+              id="thumbnail-upload"
+              disabled={loading || isUploading}
             />
+            <label
+              htmlFor="thumbnail-upload"
+              className={`flex-1 flex items-center justify-center gap-2 px-4 py-3 border-2 border-dashed rounded-lg cursor-pointer transition-all ${
+                errors.thumbnail
+                  ? "border-red-500 bg-red-500/10"
+                  : "border-[var(--border)] hover:border-[var(--primary)] hover:bg-[var(--primary)]/5"
+              } ${loading || isUploading ? "opacity-50 cursor-not-allowed" : ""}`}
+            >
+              {isUploading ? (
+                <>
+                  <div className="animate-spin rounded-full h-5 w-5 border-2 border-[var(--primary)] border-t-transparent"></div>
+                  <span className="text-sm text-[var(--foreground)]">Uploading...</span>
+                </>
+              ) : (
+                <>
+                  <Upload size={18} className="text-[var(--foreground)]/60" />
+                  <span className="text-sm text-[var(--foreground)]">
+                    {thumbnailFile ? "Change Image" : "Upload Image"}
+                  </span>
+                </>
+              )}
+            </label>
+          </div>
+
+          {/* Or URL Input */}
+          <div className="text-center text-xs text-[var(--foreground)]/60">or</div>
+          
+          <Input
+            label="Or enter URL"
+            type="url"
+            value={thumbnailUrl}
+            onChange={(e) => {
+              setThumbnailUrl(e.target.value);
+              if (e.target.value && isValidUrl(e.target.value)) {
+                setThumbnailPreview(e.target.value);
+              }
+            }}
+            placeholder="https://example.com/image.jpg"
+            error={errors.thumbnailUrl || errors.thumbnail}
+            disabled={!!thumbnailFile}
+          />
+        </div>
+
+        {/* Preview */}
+        {thumbnailPreview && (
+          <div className="mt-4 relative">
+            <div className="relative w-full h-48 rounded-lg overflow-hidden border border-[var(--border)] bg-[var(--card)]">
+              <img
+                src={thumbnailPreview}
+                alt="Thumbnail preview"
+                className="w-full h-full object-cover"
+                onError={(e) => {
+                  e.target.style.display = "none";
+                }}
+              />
+              {thumbnailFile && (
+                <button
+                  type="button"
+                  onClick={handleRemoveFile}
+                  className="absolute top-2 right-2 p-2 rounded-full bg-red-500/90 hover:bg-red-600 text-white transition-colors"
+                  title="Remove image"
+                >
+                  <X size={16} />
+                </button>
+              )}
+            </div>
+            {thumbnailFile && (
+              <p className="mt-2 text-xs text-[var(--foreground)]/60 text-center">
+                {thumbnailFile.name} ({(thumbnailFile.size / 1024 / 1024).toFixed(2)} MB)
+              </p>
+            )}
           </div>
         )}
       </div>

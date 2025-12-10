@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { Menu, X, User, LogOut } from "lucide-react";
+import { Menu, X, User, LogOut, LayoutDashboard, ChevronDown } from "lucide-react";
 import { Button } from "./Button";
 import { useAuth } from "../hooks/useAuth";
 import { redirectToLogin } from "../services/authService";
@@ -11,10 +11,29 @@ import { clearAuthToken } from "../utils/auth";
  */
 export function Navbar() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
+  const userMenuRef = useRef(null);
   const location = useLocation();
   const { isAuthenticated, user, logout } = useAuth();
   
   const isActive = (path) => location.pathname === path;
+
+  // Close user menu when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (userMenuRef.current && !userMenuRef.current.contains(event.target)) {
+        setIsUserMenuOpen(false);
+      }
+    };
+
+    if (isUserMenuOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [isUserMenuOpen]);
   
   const navLinks = [
     { path: "/", label: "Showcase" },
@@ -66,21 +85,57 @@ export function Navbar() {
             
             {/* User Menu */}
             {isAuthenticated ? (
-              <div className="flex items-center gap-3">
-                <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-[var(--muted)]">
+              <div className="relative" ref={userMenuRef}>
+                <button
+                  onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
+                  className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-[var(--muted)] hover:bg-[var(--card)] transition-colors"
+                >
                   <User className="h-4 w-4 text-[var(--foreground)]/60" />
                   <span className="text-sm text-[var(--foreground)]">
                     {user?.name || user?.email || "User"}
                   </span>
-                </div>
-                <Button
-                  variant="secondary"
-                  size="sm"
-                  onClick={handleLogout}
-                >
-                  <LogOut className="h-4 w-4 mr-1" />
-                  Logout
-                </Button>
+                  <ChevronDown className={`h-4 w-4 text-[var(--foreground)]/60 transition-transform ${isUserMenuOpen ? "rotate-180" : ""}`} />
+                </button>
+
+                {/* Dropdown Menu */}
+                {isUserMenuOpen && (
+                  <div className="absolute right-0 mt-2 w-48 bg-[var(--card)] border border-[var(--border)] rounded-lg shadow-lg z-50 overflow-hidden">
+                    <div className="py-1">
+                      <Link
+                        to="/dashboard"
+                        onClick={() => setIsUserMenuOpen(false)}
+                        className={`flex items-center gap-2 px-4 py-2 text-sm transition-colors ${
+                          isActive("/dashboard")
+                            ? "bg-[var(--primary)]/10 text-[var(--primary)]"
+                            : "text-[var(--foreground)] hover:bg-[var(--muted)]"
+                        }`}
+                      >
+                        <LayoutDashboard className="h-4 w-4" />
+                        Dashboard
+                      </Link>
+                      {/* Profile link - future */}
+                      {/* <Link
+                        to={`/user/${user?.id}`}
+                        onClick={() => setIsUserMenuOpen(false)}
+                        className="flex items-center gap-2 px-4 py-2 text-sm text-[var(--foreground)] hover:bg-[var(--muted)] transition-colors"
+                      >
+                        <User className="h-4 w-4" />
+                        Profile
+                      </Link> */}
+                      <div className="border-t border-[var(--border)] my-1" />
+                      <button
+                        onClick={() => {
+                          setIsUserMenuOpen(false);
+                          handleLogout();
+                        }}
+                        className="w-full flex items-center gap-2 px-4 py-2 text-sm text-red-500 hover:bg-red-500/10 transition-colors"
+                      >
+                        <LogOut className="h-4 w-4" />
+                        Logout
+                      </button>
+                    </div>
+                  </div>
+                )}
               </div>
             ) : (
               <Button
@@ -129,6 +184,20 @@ export function Navbar() {
               ))}
               {isAuthenticated ? (
                 <>
+                  <Link
+                    to="/dashboard"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                      isActive("/dashboard")
+                        ? "text-[var(--primary)] bg-[var(--primary)]/10"
+                        : "text-[var(--foreground)]/80 hover:text-[var(--foreground)] hover:bg-[var(--muted)]"
+                    }`}
+                  >
+                    <div className="flex items-center gap-2">
+                      <LayoutDashboard className="h-4 w-4" />
+                      Dashboard
+                    </div>
+                  </Link>
                   <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-[var(--muted)] mt-2">
                     <User className="h-4 w-4 text-[var(--foreground)]/60" />
                     <span className="text-sm text-[var(--foreground)]">

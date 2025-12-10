@@ -1,4 +1,4 @@
-import { apiGet, apiPut } from "./apiClient";
+import { apiGet, apiPut, apiDelete } from "./apiClient";
 
 const BASE_ENDPOINT = "/api/v1/projects";
 
@@ -82,6 +82,22 @@ export async function getShowcasedProjects(page = 1, limit = 100) {
     return response;
   } catch (error) {
     console.error("Failed to get showcased projects:", error);
+    throw error;
+  }
+}
+
+/**
+ * Delete project
+ * DELETE /api/v1/projects/:id
+ * @param {string} id - Project ID
+ * @returns {Promise<Object>} Delete response
+ */
+export async function deleteProject(id) {
+  try {
+    const response = await apiDelete(`${BASE_ENDPOINT}/${id}`);
+    return response;
+  } catch (error) {
+    console.error("Failed to delete project:", error);
     throw error;
   }
 }

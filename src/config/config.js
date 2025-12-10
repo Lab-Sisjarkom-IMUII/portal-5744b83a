@@ -36,6 +36,18 @@ const config = {
     // Set to true to use dummy data, false to use real API
     useDummyData: false,
   },
+
+  // Supabase Configuration (for file uploads)
+  supabase: {
+    // Supabase project URL
+    url: "https://mjgoqvpqwgwicrkbidyj.supabase.co",
+    
+    // Supabase anonymous/public key
+    anonKey: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1qZ29xdnBxd2d3aWNya2JpZHlqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI0MDg1ODMsImV4cCI6MjA3Nzk4NDU4M30.XHw8qnxUsrc8picYeAtRo2LUrL45QNMEg32eAXHn2so",
+    
+    // Storage bucket name for uploads
+    bucketName: "thumbnails", // Default bucket name, bisa diubah sesuai kebutuhan
+  },
 };
 
 // Export configuration
@@ -46,4 +58,7 @@ export const API_BASE_URL = config.api.baseUrl;
 export const WEB_BASE_URL = config.sso.webBaseUrl;
 export const PORTAL_BASE_URL = config.sso.portalBaseUrl;
 export const USE_DUMMY_DATA = config.features.useDummyData;
+export const SUPABASE_URL = config.supabase.url;
+export const SUPABASE_ANON_KEY = config.supabase.anonKey;
+export const SUPABASE_BUCKET_NAME = config.supabase.bucketName;
 

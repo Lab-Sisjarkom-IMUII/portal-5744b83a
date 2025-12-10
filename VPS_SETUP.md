@@ -35,6 +35,11 @@ const config = {
   features: {
     useDummyData: false, // false untuk production
   },
+  supabase: {
+    url: "https://your-project.supabase.co", // Supabase project URL
+    anonKey: "your-anon-key", // Supabase anonymous key
+    bucketName: "thumbnails", // Storage bucket name
+  },
 };
 ```
 
@@ -129,9 +134,40 @@ npm run build:dev   # untuk development
 - Check callback URL configured di imuii-web
 - Check cookie domain settings
 
+### File Upload Not Working
+
+- Check `supabase.url` dan `supabase.anonKey` di config.js
+- Verify Supabase bucket exists and is public
+- Check Supabase storage policies (allow public read)
+- Install dependencies: `npm install @supabase/supabase-js`
+
+## Supabase Setup
+
+Untuk upload foto ke Supabase Storage:
+
+1. **Install Dependencies**
+   ```bash
+   npm install @supabase/supabase-js
+   ```
+
+2. **Setup Supabase Bucket**
+   - Buat bucket di Supabase Dashboard (Storage > New Bucket)
+   - Nama bucket: `thumbnails` (atau sesuai `bucketName` di config)
+   - Set bucket sebagai **Public** (untuk anonymous access)
+   - Set Storage Policies untuk allow upload (jika perlu authenticated upload)
+
+3. **Update Config**
+   - Masukkan `supabase.url` dan `supabase.anonKey` di `config.js`
+   - Pastikan `bucketName` sesuai dengan nama bucket di Supabase
+
+4. **Test Upload**
+   - Coba upload foto melalui EditForm
+   - Check Supabase Storage untuk verify file terupload
+
 ## Security Notes
 
 - File `config.js` berisi URL public (tidak sensitif)
-- Jangan commit sensitive data (API keys, secrets) ke config.js
+- Supabase `anonKey` adalah public key (aman untuk client-side)
+- Jangan commit sensitive data (service role keys, secrets) ke config.js
 - Untuk sensitive data, gunakan environment variables atau secure storage
 
