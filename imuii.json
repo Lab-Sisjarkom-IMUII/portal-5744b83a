@@ -1,0 +1,11 @@
+{
+  "name": "imuii-portal",
+  "framework": "react",
+  "language": "javascript",
+  "buildCommand": "vite build",
+  "startCommand": "npm run dev",
+  "domain": "portal",
+  "email": "d.raihan2004@gmail.com",
+  "secretKey": "imuii_d299935e4fbea95764e4ff1efb858c4673d647b47a45a0e39a460711112e7ad6",
+  "repoUrl": "https://github.com/Lab-Sisjarkom-IMUII/portal-5744b83a.git"
+}
