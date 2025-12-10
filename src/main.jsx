@@ -6,6 +6,7 @@ import { AuthProvider } from './contexts/AuthContext'
 import { Layout } from './components/Layout'
 import { ShowcasePage } from './pages/ShowcasePage'
 import { DetailPage } from './pages/DetailPage'
+import { EditPage } from './pages/EditPage'
 import { LoginCallback } from './pages/LoginCallback'
 
 function App() {
@@ -16,7 +17,9 @@ function App() {
           <Routes>
             <Route path="/" element={<ShowcasePage />} />
             <Route path="/project/:id" element={<DetailPage />} />
+            <Route path="/project/:id/edit" element={<EditPage />} />
             <Route path="/portfolio/:id" element={<DetailPage />} />
+            <Route path="/portfolio/:id/edit" element={<EditPage />} />
             <Route path="/auth/callback" element={<LoginCallback />} />
           </Routes>
         </Layout>

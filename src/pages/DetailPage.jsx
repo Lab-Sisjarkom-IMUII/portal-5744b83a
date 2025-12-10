@@ -8,7 +8,6 @@ import { Button } from "../components/Button";
 import { DetailSkeleton } from "../components/DetailSkeleton";
 import { ShareButtons } from "../components/ShareButtons";
 import { TeamMemberCard } from "../components/TeamMemberCard";
-import { EditModal } from "../components/EditModal";
 import { useState } from "react";
 
 /**
@@ -32,7 +31,6 @@ export function DetailPage() {
   const error = isProject ? projectData.error : portfolioData.error;
   const refetch = isProject ? projectData.refetch : portfolioData.refetch;
   const { user: currentUser } = useAuth();
-  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isToggling, setIsToggling] = useState(false);
   
   // Check if current user is owner
@@ -107,31 +105,6 @@ export function DetailPage() {
   };
   
   const currentUrl = window.location.href;
-  
-  const handleSave = async (formData) => {
-    try {
-      // Import services
-      const { updateProject } = await import("../services/projectService");
-      const { updatePortfolio } = await import("../services/portfolioService");
-      
-      if (isProject) {
-        await updateProject(id, formData);
-      } else {
-        await updatePortfolio(id, formData);
-      }
-      
-      setIsEditModalOpen(false);
-      if (refetch) {
-        refetch();
-      }
-      // Show success toast (akan diimplementasi dengan toast system)
-      console.log("Update successful");
-    } catch (err) {
-      console.error("Update failed:", err);
-      // Show error toast
-      throw err; // Re-throw untuk handle di EditForm
-    }
-  };
   
   const handleToggleVisibility = async () => {
     if (!isOwner || !data) return;
@@ -250,7 +223,7 @@ export function DetailPage() {
               <Button
                 variant="primary"
                 size="sm"
-                onClick={() => setIsEditModalOpen(true)}
+                onClick={() => navigate(isProject ? `/project/${id}/edit` : `/portfolio/${id}/edit`)}
               >
                 <Edit className="h-4 w-4 mr-1" />
                 Edit
@@ -396,16 +369,6 @@ export function DetailPage() {
         <ShareButtons url={currentUrl} title={title} description={description} />
       </div>
       
-      {/* Edit Modal */}
-      {isOwner && (
-        <EditModal
-          isOpen={isEditModalOpen}
-          onClose={() => setIsEditModalOpen(false)}
-          item={data}
-          type={type}
-          onSave={handleSave}
-        />
-      )}
     </div>
   );
 }

@@ -34,9 +34,17 @@ export function useShowcase() {
           );
         } else {
           const response = await getShowcasedProjects(1, 100);
-          projectsData = response.projects || response || [];
+          // Ensure projectsData is always an array
+          if (Array.isArray(response)) {
+            projectsData = response;
+          } else if (response && Array.isArray(response.projects)) {
+            projectsData = response.projects;
+          } else {
+            projectsData = [];
+          }
         }
-        setProjects(projectsData);
+        // Ensure it's an array before setting
+        setProjects(Array.isArray(projectsData) ? projectsData : []);
       } catch (err) {
         console.error("Failed to fetch showcased projects:", err);
         setProjectsError(err.message || "Failed to fetch projects");
@@ -58,9 +66,17 @@ export function useShowcase() {
           );
         } else {
           const response = await getShowcasedPortfolios(1, 100);
-          portfoliosData = response.portfolios || response || [];
+          // Ensure portfoliosData is always an array
+          if (Array.isArray(response)) {
+            portfoliosData = response;
+          } else if (response && Array.isArray(response.portfolios)) {
+            portfoliosData = response.portfolios;
+          } else {
+            portfoliosData = [];
+          }
         }
-        setPortfolios(portfoliosData);
+        // Ensure it's an array before setting
+        setPortfolios(Array.isArray(portfoliosData) ? portfoliosData : []);
       } catch (err) {
         console.error("Failed to fetch showcased portfolios:", err);
         setPortfoliosError(err.message || "Failed to fetch portfolios");
@@ -131,8 +147,22 @@ export function useShowcase() {
           getShowcasedProjects(1, 100),
           getShowcasedPortfolios(1, 100),
         ]);
-        projectsData = projectsResponse.projects || projectsResponse || [];
-        portfoliosData = portfoliosResponse.portfolios || portfoliosResponse || [];
+        // Ensure projectsData is always an array
+        if (Array.isArray(projectsResponse)) {
+          projectsData = projectsResponse;
+        } else if (projectsResponse && Array.isArray(projectsResponse.projects)) {
+          projectsData = projectsResponse.projects;
+        } else {
+          projectsData = [];
+        }
+        // Ensure portfoliosData is always an array
+        if (Array.isArray(portfoliosResponse)) {
+          portfoliosData = portfoliosResponse;
+        } else if (portfoliosResponse && Array.isArray(portfoliosResponse.portfolios)) {
+          portfoliosData = portfoliosResponse.portfolios;
+        } else {
+          portfoliosData = [];
+        }
       }
       
       setProjects(projectsData);
