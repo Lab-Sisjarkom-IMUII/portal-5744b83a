@@ -37,6 +37,7 @@ export function Navbar() {
   
   const navLinks = [
     { path: "/", label: "Showcase" },
+    { path: "/events", label: "Events" },
   ];
   
   const handleLogin = () => {

@@ -6,6 +6,8 @@ import { AuthProvider } from './contexts/AuthContext'
 import { Layout } from './components/Layout'
 import { ProtectedRoute } from './components/ProtectedRoute'
 import { ShowcasePage } from './pages/ShowcasePage'
+import { EventsPage } from './pages/EventsPage'
+import { EventDetailPage } from './pages/EventDetailPage'
 import { DetailPage } from './pages/DetailPage'
 import { EditPage } from './pages/EditPage'
 import { DashboardPage } from './pages/DashboardPage'
@@ -18,6 +20,8 @@ function App() {
         <Layout>
           <Routes>
             <Route path="/" element={<ShowcasePage />} />
+            <Route path="/events" element={<EventsPage />} />
+            <Route path="/events/:id" element={<EventDetailPage />} />
             <Route path="/dashboard" element={<ProtectedRoute><DashboardPage /></ProtectedRoute>} />
             <Route path="/project/:id" element={<DetailPage />} />
             <Route path="/project/:id/edit" element={<ProtectedRoute><EditPage /></ProtectedRoute>} />

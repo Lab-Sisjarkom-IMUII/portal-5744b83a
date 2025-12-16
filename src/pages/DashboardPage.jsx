@@ -5,6 +5,7 @@ import { usePortfolios } from "../hooks/usePortfolios";
 import { StatsOverview } from "../components/StatsOverview";
 import { MyProjects } from "../components/MyProjects";
 import { MyPortfolios } from "../components/MyPortfolios";
+import { MyEvents } from "../components/MyEvents";
 import { Loader2 } from "lucide-react";
 
 /**
@@ -55,10 +56,15 @@ export function DashboardPage() {
       <div className="mb-12">
         <MyProjects onRefetch={handleRefetch} key={`projects-${refetchKey}`} />
       </div>
-
+      
       {/* My Portfolios Section */}
       <div className="mb-12">
         <MyPortfolios onRefetch={handleRefetch} key={`portfolios-${refetchKey}`} />
+      </div>
+
+      {/* My Events Section */}
+      <div className="mb-12">
+        <MyEvents />
       </div>
     </div>
   );
