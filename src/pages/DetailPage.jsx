@@ -8,7 +8,10 @@ import { Button } from "../components/Button";
 import { DetailSkeleton } from "../components/DetailSkeleton";
 import { ShareButtons } from "../components/ShareButtons";
 import { TeamMemberCard } from "../components/TeamMemberCard";
-import { useState } from "react";
+import { Modal } from "../components/Modal";
+import { Card } from "../components/Card";
+import { useEffect, useMemo, useState } from "react";
+import { getEvents, getEventProjects, registerProjectToEvent, unregisterProjectFromEvent } from "../services/eventService";
 
 /**
  * Detail Page untuk project atau portfolio
@@ -32,6 +35,13 @@ export function DetailPage() {
   const refetch = isProject ? projectData.refetch : portfolioData.refetch;
   const { user: currentUser } = useAuth();
   const [isToggling, setIsToggling] = useState(false);
+  const [manageEventsOpen, setManageEventsOpen] = useState(false);
+  const [eventsLoading, setEventsLoading] = useState(false);
+  const [eventsError, setEventsError] = useState(null);
+  const [events, setEvents] = useState([]);
+  const [membershipByEventId, setMembershipByEventId] = useState({});
+  const [actionByEventId, setActionByEventId] = useState({});
+  const [eventsActionError, setEventsActionError] = useState(null);
   
   // Check if current user is owner
   const isOwner = data && currentUser && (
@@ -93,6 +103,8 @@ export function DetailPage() {
   const createdDate = data.created_at;
   const updatedDate = data.updated_at;
   const repoUrl = data.repo_url;
+
+  const projectId = isProject ? data?.id : null;
   
   const formatDate = (dateString) => {
     if (!dateString) return "N/A";
@@ -135,6 +147,112 @@ export function DetailPage() {
   };
   
   const isShowcased = data?.is_showcased !== false; // Default to true if not set
+
+  const joinedEvents = useMemo(() => {
+    return (events || []).filter((evt) => membershipByEventId?.[evt.id]);
+  }, [events, membershipByEventId]);
+
+  const availableEvents = useMemo(() => {
+    return (events || []).filter((evt) => !membershipByEventId?.[evt.id]);
+  }, [events, membershipByEventId]);
+
+  const loadEventsAndMembership = async () => {
+    if (!isProject || !projectId) return;
+
+    setEventsLoading(true);
+    setEventsError(null);
+    setEventsActionError(null);
+
+    try {
+      const [activeRes, upcomingRes] = await Promise.all([
+        getEvents({ status: "active", page: 1, limit: 100 }),
+        getEvents({ status: "upcoming", page: 1, limit: 100 }),
+      ]);
+
+      const combined = [...(activeRes?.events || []), ...(upcomingRes?.events || [])];
+      const uniqueById = new Map();
+      combined.forEach((evt) => {
+        if (evt?.id && !uniqueById.has(evt.id)) uniqueById.set(evt.id, evt);
+      });
+      const uniqueEvents = Array.from(uniqueById.values());
+      setEvents(uniqueEvents);
+
+      // Membership check per event (O(N) requests) - sesuai pilihan tanpa endpoint baru
+      const membershipPairs = await Promise.all(
+        uniqueEvents.map(async (evt) => {
+          try {
+            const projectsInEvent = await getEventProjects(evt.id);
+            const isJoined = (projectsInEvent || []).some((p) => p?.id === projectId);
+            return [evt.id, isJoined];
+          } catch (err) {
+            console.error("Failed to check event membership:", evt?.id, err);
+            return [evt.id, false];
+          }
+        })
+      );
+
+      const nextMembership = {};
+      membershipPairs.forEach(([eventId, isJoined]) => {
+        nextMembership[eventId] = !!isJoined;
+      });
+      setMembershipByEventId(nextMembership);
+    } catch (err) {
+      console.error("Failed to load events for project:", err);
+      setEventsError(err.message || "Gagal memuat daftar events");
+      setEvents([]);
+      setMembershipByEventId({});
+    } finally {
+      setEventsLoading(false);
+    }
+  };
+
+  // Lazy load saat modal dibuka, supaya tidak membanjiri request saat buka detail project
+  useEffect(() => {
+    if (manageEventsOpen) {
+      loadEventsAndMembership();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [manageEventsOpen, projectId, isProject]);
+
+  const handleJoinEventForProject = async (eventId) => {
+    if (!eventId || !projectId) return;
+    setEventsActionError(null);
+    setActionByEventId((prev) => ({ ...prev, [eventId]: "join" }));
+
+    try {
+      await registerProjectToEvent(eventId, projectId);
+      setMembershipByEventId((prev) => ({ ...prev, [eventId]: true }));
+    } catch (err) {
+      console.error("Join event failed:", err);
+      setEventsActionError(err.message || "Gagal mendaftarkan project ke event");
+    } finally {
+      setActionByEventId((prev) => {
+        const next = { ...prev };
+        delete next[eventId];
+        return next;
+      });
+    }
+  };
+
+  const handleLeaveEventForProject = async (eventId) => {
+    if (!eventId || !projectId) return;
+    setEventsActionError(null);
+    setActionByEventId((prev) => ({ ...prev, [eventId]: "leave" }));
+
+    try {
+      await unregisterProjectFromEvent(eventId, projectId);
+      setMembershipByEventId((prev) => ({ ...prev, [eventId]: false }));
+    } catch (err) {
+      console.error("Leave event failed:", err);
+      setEventsActionError(err.message || "Gagal membatalkan project dari event");
+    } finally {
+      setActionByEventId((prev) => {
+        const next = { ...prev };
+        delete next[eventId];
+        return next;
+      });
+    }
+  };
   
   return (
     <div className="py-8">
@@ -359,6 +477,225 @@ export function DetailPage() {
             ))}
           </div>
         </div>
+      )}
+
+      {/* Joined Events (Project Only) */}
+      {isProject && (
+        <div className="mb-8">
+          <div className="flex items-center justify-between gap-3 mb-4">
+            <h2 className="text-2xl font-semibold text-[var(--foreground)]">
+              Joined Events
+            </h2>
+            {isOwner && (
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={() => setManageEventsOpen(true)}
+              >
+                Manage Events
+              </Button>
+            )}
+          </div>
+
+          {!currentUser && (
+            <p className="text-sm text-[var(--foreground)]/60 mb-3">
+              Login untuk mengelola event. Kamu tetap bisa melihat daftar event yang tersedia dari menu Events.
+            </p>
+          )}
+
+          {joinedEvents.length === 0 ? (
+            <Card className="p-5">
+              <p className="text-sm text-[var(--foreground)]/70">
+                Project ini belum terdaftar pada event mana pun.
+              </p>
+              <p className="text-xs text-[var(--foreground)]/50 mt-1">
+                {isOwner
+                  ? "Klik “Manage Events” untuk mendaftarkan project ke event."
+                  : "Hanya owner project yang dapat mendaftarkan project ke event."}
+              </p>
+            </Card>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {joinedEvents.map((evt) => (
+                <Card key={evt.id} className="p-4 space-y-2">
+                  <div className="flex items-start justify-between gap-2">
+                    <div>
+                      <p className="text-base font-semibold text-[var(--foreground)]">
+                        {evt.name}
+                      </p>
+                      {evt.description && (
+                        <p className="text-sm text-[var(--foreground)]/70 line-clamp-2">
+                          {evt.description}
+                        </p>
+                      )}
+                    </div>
+                    <span
+                      className={`px-2 py-1 rounded-full text-xs font-medium ${
+                        evt.status === "active"
+                          ? "bg-green-500/20 text-green-400"
+                          : evt.status === "upcoming"
+                          ? "bg-blue-500/20 text-blue-400"
+                          : "bg-red-500/20 text-red-400"
+                      }`}
+                    >
+                      {evt.status}
+                    </span>
+                  </div>
+
+                  <div className="flex items-center justify-between pt-2 border-t border-[var(--border)]">
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      onClick={() => navigate(`/events/${evt.id}`)}
+                    >
+                      View Event
+                    </Button>
+                    {isOwner && (
+                      <Button
+                        variant="secondary"
+                        size="sm"
+                        onClick={() => handleLeaveEventForProject(evt.id)}
+                        loading={actionByEventId?.[evt.id] === "leave"}
+                        disabled={actionByEventId?.[evt.id] === "leave"}
+                      >
+                        Leave
+                      </Button>
+                    )}
+                  </div>
+                </Card>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Manage Events Modal (Project Only) */}
+      {isProject && (
+        <Modal
+          isOpen={manageEventsOpen}
+          onClose={() => {
+            const anyAction = Object.keys(actionByEventId || {}).length > 0;
+            if (!anyAction) {
+              setManageEventsOpen(false);
+              setEventsActionError(null);
+            }
+          }}
+          title="Manage Events"
+          className="max-w-2xl"
+        >
+          {eventsActionError && (
+            <div className="mb-4 p-3 rounded-lg border border-red-500/40 bg-red-500/5 text-sm text-red-500">
+              {eventsActionError}
+            </div>
+          )}
+
+          {eventsLoading ? (
+            <div className="flex flex-col items-center gap-3 py-6">
+              <Spinner />
+              <p className="text-sm text-[var(--foreground)]/60">
+                Memuat events...
+              </p>
+            </div>
+          ) : eventsError ? (
+            <div className="space-y-3">
+              <p className="text-red-500 text-sm">{eventsError}</p>
+              <Button variant="secondary" onClick={loadEventsAndMembership}>
+                Retry
+              </Button>
+            </div>
+          ) : events.length === 0 ? (
+            <p className="text-sm text-[var(--foreground)]/70">
+              Belum ada event aktif atau upcoming.
+            </p>
+          ) : (
+            <div className="space-y-3">
+              <p className="text-sm text-[var(--foreground)]/70">
+                Pilih event untuk mendaftarkan project ini. Kamu juga bisa keluar (leave) dari event yang sudah diikuti.
+              </p>
+
+              <div className="space-y-2">
+                {events.map((evt) => {
+                  const isJoined = !!membershipByEventId?.[evt.id];
+                  const isActing = !!actionByEventId?.[evt.id];
+                  const actionType = actionByEventId?.[evt.id];
+
+                  return (
+                    <Card
+                      key={evt.id}
+                      className="p-3 flex flex-col md:flex-row md:items-center justify-between gap-3"
+                    >
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-2">
+                          <p className="text-sm font-semibold text-[var(--foreground)] truncate">
+                            {evt.name}
+                          </p>
+                          <span
+                            className={`px-2 py-0.5 rounded-full text-xs font-medium ${
+                              evt.status === "active"
+                                ? "bg-green-500/20 text-green-400"
+                                : evt.status === "upcoming"
+                                ? "bg-blue-500/20 text-blue-400"
+                                : "bg-red-500/20 text-red-400"
+                            }`}
+                          >
+                            {evt.status}
+                          </span>
+                          <span
+                            className={`px-2 py-0.5 rounded-full text-xs font-medium ${
+                              isJoined
+                                ? "bg-green-500/20 text-green-400"
+                                : "bg-gray-500/20 text-gray-400"
+                            }`}
+                          >
+                            {isJoined ? "Joined" : "Not joined"}
+                          </span>
+                        </div>
+                        {evt.description && (
+                          <p className="text-xs text-[var(--foreground)]/60 line-clamp-2 mt-1">
+                            {evt.description}
+                          </p>
+                        )}
+                      </div>
+
+                      <div className="flex items-center gap-2 flex-shrink-0">
+                        <Button
+                          variant="secondary"
+                          size="sm"
+                          onClick={() => navigate(`/events/${evt.id}`)}
+                        >
+                          View
+                        </Button>
+                        {isOwner && (
+                          isJoined ? (
+                            <Button
+                              variant="secondary"
+                              size="sm"
+                              onClick={() => handleLeaveEventForProject(evt.id)}
+                              loading={isActing && actionType === "leave"}
+                              disabled={isActing}
+                            >
+                              Leave
+                            </Button>
+                          ) : (
+                            <Button
+                              variant="primary"
+                              size="sm"
+                              onClick={() => handleJoinEventForProject(evt.id)}
+                              loading={isActing && actionType === "join"}
+                              disabled={isActing}
+                            >
+                              Join
+                            </Button>
+                          )
+                        )}
+                      </div>
+                    </Card>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+        </Modal>
       )}
       
       {/* Share Buttons */}
