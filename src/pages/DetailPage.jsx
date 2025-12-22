@@ -10,7 +10,7 @@ import { ShareButtons } from "../components/ShareButtons";
 import { TeamMemberCard } from "../components/TeamMemberCard";
 import { Modal } from "../components/Modal";
 import { Card } from "../components/Card";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useCallback } from "react";
 import { getEvents, getEventProjects, registerProjectToEvent, unregisterProjectFromEvent } from "../services/eventService";
 
 /**
@@ -42,6 +42,77 @@ export function DetailPage() {
   const [membershipByEventId, setMembershipByEventId] = useState({});
   const [actionByEventId, setActionByEventId] = useState({});
   const [eventsActionError, setEventsActionError] = useState(null);
+  
+  // Memindahkan useMemo ke sini SEBELUM early returns untuk memastikan hook dipanggil dalam urutan yang sama
+  const joinedEvents = useMemo(() => {
+    return (events || []).filter((evt) => membershipByEventId?.[evt.id]);
+  }, [events, membershipByEventId]);
+
+  const availableEvents = useMemo(() => {
+    return (events || []).filter((evt) => !membershipByEventId?.[evt.id]);
+  }, [events, membershipByEventId]);
+
+  // Project ID untuk event management (hanya untuk project)
+  const projectId = isProject ? data?.id : null;
+
+  // Load events function - menggunakan useCallback untuk memastikan dependency yang benar
+  const loadEventsAndMembership = useCallback(async () => {
+    if (!isProject || !projectId) return;
+
+    setEventsLoading(true);
+    setEventsError(null);
+    setEventsActionError(null);
+
+    try {
+      const [activeRes, upcomingRes] = await Promise.all([
+        getEvents({ status: "active", page: 1, limit: 100 }),
+        getEvents({ status: "upcoming", page: 1, limit: 100 }),
+      ]);
+
+      const combined = [...(activeRes?.events || []), ...(upcomingRes?.events || [])];
+      const uniqueById = new Map();
+      combined.forEach((evt) => {
+        if (evt?.id && !uniqueById.has(evt.id)) uniqueById.set(evt.id, evt);
+      });
+      const uniqueEvents = Array.from(uniqueById.values());
+      setEvents(uniqueEvents);
+
+      // Membership check per event (O(N) requests) - sesuai pilihan tanpa endpoint baru
+      const membershipPairs = await Promise.all(
+        uniqueEvents.map(async (evt) => {
+          try {
+            const projectsInEvent = await getEventProjects(evt.id);
+            const isJoined = (projectsInEvent || []).some((p) => p?.id === projectId);
+            return [evt.id, isJoined];
+          } catch (err) {
+            console.error("Failed to check event membership:", evt?.id, err);
+            return [evt.id, false];
+          }
+        })
+      );
+
+      const nextMembership = {};
+      membershipPairs.forEach(([eventId, isJoined]) => {
+        nextMembership[eventId] = !!isJoined;
+      });
+      setMembershipByEventId(nextMembership);
+    } catch (err) {
+      console.error("Failed to load events for project:", err);
+      setEventsError(err.message || "Gagal memuat daftar events");
+      setEvents([]);
+      setMembershipByEventId({});
+    } finally {
+      setEventsLoading(false);
+    }
+  }, [isProject, projectId]);
+
+  // Lazy load saat modal dibuka, supaya tidak membanjiri request saat buka detail project
+  // Dipindahkan ke sini SEBELUM early returns
+  useEffect(() => {
+    if (manageEventsOpen && isProject && projectId) {
+      loadEventsAndMembership();
+    }
+  }, [manageEventsOpen, isProject, projectId, loadEventsAndMembership]);
   
   // Check if current user is owner
   const isOwner = data && currentUser && (
@@ -103,8 +174,6 @@ export function DetailPage() {
   const createdDate = data.created_at;
   const updatedDate = data.updated_at;
   const repoUrl = data.repo_url;
-
-  const projectId = isProject ? data?.id : null;
   
   const formatDate = (dateString) => {
     if (!dateString) return "N/A";
@@ -147,72 +216,6 @@ export function DetailPage() {
   };
   
   const isShowcased = data?.is_showcased !== false; // Default to true if not set
-
-  const joinedEvents = useMemo(() => {
-    return (events || []).filter((evt) => membershipByEventId?.[evt.id]);
-  }, [events, membershipByEventId]);
-
-  const availableEvents = useMemo(() => {
-    return (events || []).filter((evt) => !membershipByEventId?.[evt.id]);
-  }, [events, membershipByEventId]);
-
-  const loadEventsAndMembership = async () => {
-    if (!isProject || !projectId) return;
-
-    setEventsLoading(true);
-    setEventsError(null);
-    setEventsActionError(null);
-
-    try {
-      const [activeRes, upcomingRes] = await Promise.all([
-        getEvents({ status: "active", page: 1, limit: 100 }),
-        getEvents({ status: "upcoming", page: 1, limit: 100 }),
-      ]);
-
-      const combined = [...(activeRes?.events || []), ...(upcomingRes?.events || [])];
-      const uniqueById = new Map();
-      combined.forEach((evt) => {
-        if (evt?.id && !uniqueById.has(evt.id)) uniqueById.set(evt.id, evt);
-      });
-      const uniqueEvents = Array.from(uniqueById.values());
-      setEvents(uniqueEvents);
-
-      // Membership check per event (O(N) requests) - sesuai pilihan tanpa endpoint baru
-      const membershipPairs = await Promise.all(
-        uniqueEvents.map(async (evt) => {
-          try {
-            const projectsInEvent = await getEventProjects(evt.id);
-            const isJoined = (projectsInEvent || []).some((p) => p?.id === projectId);
-            return [evt.id, isJoined];
-          } catch (err) {
-            console.error("Failed to check event membership:", evt?.id, err);
-            return [evt.id, false];
-          }
-        })
-      );
-
-      const nextMembership = {};
-      membershipPairs.forEach(([eventId, isJoined]) => {
-        nextMembership[eventId] = !!isJoined;
-      });
-      setMembershipByEventId(nextMembership);
-    } catch (err) {
-      console.error("Failed to load events for project:", err);
-      setEventsError(err.message || "Gagal memuat daftar events");
-      setEvents([]);
-      setMembershipByEventId({});
-    } finally {
-      setEventsLoading(false);
-    }
-  };
-
-  // Lazy load saat modal dibuka, supaya tidak membanjiri request saat buka detail project
-  useEffect(() => {
-    if (manageEventsOpen) {
-      loadEventsAndMembership();
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [manageEventsOpen, projectId, isProject]);
 
   const handleJoinEventForProject = async (eventId) => {
     if (!eventId || !projectId) return;
