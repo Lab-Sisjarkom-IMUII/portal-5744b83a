@@ -85,8 +85,7 @@ export function MyProjects({ onRefetch }) {
           variant="primary"
           size="sm"
           onClick={() => {
-            // Future: Navigate to create project page
-            alert("Create project feature coming soon!");
+            window.open("https://imuii.id/docs/get-started", "_blank", "noopener,noreferrer");
           }}
         >
           <Plus className="h-4 w-4 mr-1" />
@@ -103,7 +102,7 @@ export function MyProjects({ onRefetch }) {
           <Button
             variant="primary"
             onClick={() => {
-              alert("Create project feature coming soon!");
+              window.open("https://imuii.id/docs/get-started", "_blank", "noopener,noreferrer");
             }}
           >
             <Plus className="h-4 w-4 mr-1" />
@@ -118,7 +117,11 @@ export function MyProjects({ onRefetch }) {
             const description = project.showcase_description || project.description || "";
 
             return (
-              <Card key={project.id} className="overflow-hidden">
+              <Card 
+                key={project.id} 
+                className="overflow-hidden cursor-pointer hover:scale-105 hover:shadow-lg transition-all duration-200"
+                onClick={() => navigate(`/project/${project.id}`)}
+              >
                 {/* Thumbnail */}
                 <div className="w-full h-40 bg-[var(--muted)] overflow-hidden">
                   {thumbnailUrl ? (
@@ -169,16 +172,10 @@ export function MyProjects({ onRefetch }) {
                     <Button
                       variant="secondary"
                       size="sm"
-                      onClick={() => navigate(`/project/${project.id}`)}
-                      className="flex-1"
-                    >
-                      <Eye className="h-4 w-4 mr-1" />
-                      View
-                    </Button>
-                    <Button
-                      variant="secondary"
-                      size="sm"
-                      onClick={() => navigate(`/project/${project.id}/edit`)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        navigate(`/project/${project.id}/edit`);
+                      }}
                       className="flex-1"
                     >
                       <Edit className="h-4 w-4 mr-1" />
@@ -187,7 +184,10 @@ export function MyProjects({ onRefetch }) {
                     <Button
                       variant="secondary"
                       size="sm"
-                      onClick={() => handleDelete(project.id, projectName)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleDelete(project.id, projectName);
+                      }}
                       className="text-red-500 hover:bg-red-500/10 hover:text-red-600"
                     >
                       <Trash2 className="h-4 w-4" />

@@ -7,7 +7,7 @@ import { getMyEvents } from "../services/eventService";
 
 /**
  * MyEvents Component
- * Menampilkan events yang berisi projects milik user
+ * Menampilkan events yang diikuti user (events yang berisi projects milik user)
  */
 export function MyEvents() {
   const navigate = useNavigate();
@@ -63,7 +63,7 @@ export function MyEvents() {
       <div className="space-y-4">
         <div className="flex items-center justify-between">
           <h2 className="text-2xl font-bold text-[var(--foreground)]">
-            My Events
+            Events yang Diikuti
           </h2>
         </div>
         <div className="text-center py-8">
@@ -81,7 +81,7 @@ export function MyEvents() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <h2 className="text-2xl font-bold text-[var(--foreground)]">
-          My Events ({events.length})
+          Events yang Diikuti ({events.length})
         </h2>
       </div>
 
@@ -89,7 +89,7 @@ export function MyEvents() {
       {events.length === 0 ? (
         <Card className="p-8 text-center">
           <p className="text-[var(--foreground)]/60">
-            Belum ada event yang berisi project milik kamu.
+            Belum ada event yang diikuti.
           </p>
           <p className="text-[var(--foreground)]/40 text-sm mt-2">
             Kamu bisa mendaftarkan project ke event melalui halaman Events.

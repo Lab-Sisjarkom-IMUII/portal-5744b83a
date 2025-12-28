@@ -85,8 +85,7 @@ export function MyPortfolios({ onRefetch }) {
           variant="primary"
           size="sm"
           onClick={() => {
-            // Future: Navigate to create portfolio page
-            alert("Create portfolio feature coming soon!");
+            window.open("https://imuii.id/create", "_blank", "noopener,noreferrer");
           }}
         >
           <Plus className="h-4 w-4 mr-1" />
@@ -103,7 +102,7 @@ export function MyPortfolios({ onRefetch }) {
           <Button
             variant="primary"
             onClick={() => {
-              alert("Create portfolio feature coming soon!");
+              window.open("https://imuii.id/create", "_blank", "noopener,noreferrer");
             }}
           >
             <Plus className="h-4 w-4 mr-1" />
@@ -118,7 +117,11 @@ export function MyPortfolios({ onRefetch }) {
             const description = portfolio.showcase_description || portfolio.description || "";
 
             return (
-              <Card key={portfolio.id} className="overflow-hidden">
+              <Card 
+                key={portfolio.id} 
+                className="overflow-hidden cursor-pointer hover:scale-105 hover:shadow-lg transition-all duration-200"
+                onClick={() => navigate(`/portfolio/${portfolio.id}`)}
+              >
                 {/* Thumbnail */}
                 <div className="w-full h-40 bg-[var(--muted)] overflow-hidden">
                   {thumbnailUrl ? (
@@ -169,16 +172,10 @@ export function MyPortfolios({ onRefetch }) {
                     <Button
                       variant="secondary"
                       size="sm"
-                      onClick={() => navigate(`/portfolio/${portfolio.id}`)}
-                      className="flex-1"
-                    >
-                      <Eye className="h-4 w-4 mr-1" />
-                      View
-                    </Button>
-                    <Button
-                      variant="secondary"
-                      size="sm"
-                      onClick={() => navigate(`/portfolio/${portfolio.id}/edit`)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        navigate(`/portfolio/${portfolio.id}/edit`);
+                      }}
                       className="flex-1"
                     >
                       <Edit className="h-4 w-4 mr-1" />
@@ -187,7 +184,10 @@ export function MyPortfolios({ onRefetch }) {
                     <Button
                       variant="secondary"
                       size="sm"
-                      onClick={() => handleDelete(portfolio.id, portfolioName)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleDelete(portfolio.id, portfolioName);
+                      }}
                       className="text-red-500 hover:bg-red-500/10 hover:text-red-600"
                     >
                       <Trash2 className="h-4 w-4" />

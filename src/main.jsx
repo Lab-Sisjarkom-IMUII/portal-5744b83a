@@ -11,6 +11,7 @@ import { EventDetailPage } from './pages/EventDetailPage'
 import { DetailPage } from './pages/DetailPage'
 import { EditPage } from './pages/EditPage'
 import { DashboardPage } from './pages/DashboardPage'
+import { FAQPage } from './pages/FAQPage'
 import { LoginCallback } from './pages/LoginCallback'
 
 function App() {
@@ -22,6 +23,7 @@ function App() {
             <Route path="/" element={<ShowcasePage />} />
             <Route path="/events" element={<EventsPage />} />
             <Route path="/events/:id" element={<EventDetailPage />} />
+            <Route path="/faq" element={<FAQPage />} />
             <Route path="/dashboard" element={<ProtectedRoute><DashboardPage /></ProtectedRoute>} />
             <Route path="/project/:id" element={<DetailPage />} />
             <Route path="/project/:id/edit" element={<ProtectedRoute><EditPage /></ProtectedRoute>} />

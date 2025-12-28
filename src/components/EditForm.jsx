@@ -19,7 +19,6 @@ export function EditForm({ item, type, onSubmit, onCancel }) {
   const [teamMembers, setTeamMembers] = useState([]);
   const [youtubeLink, setYoutubeLink] = useState("");
   const [tags, setTags] = useState([]);
-  const [thumbnailUrl, setThumbnailUrl] = useState("");
   const [thumbnailFile, setThumbnailFile] = useState(null);
   const [thumbnailPreview, setThumbnailPreview] = useState(null);
   const [isUploading, setIsUploading] = useState(false);
@@ -36,7 +35,6 @@ export function EditForm({ item, type, onSubmit, onCancel }) {
       setTeamMembers(item.team_members || []);
       setYoutubeLink(item.youtube_link || "");
       setTags(item.tags || []);
-      setThumbnailUrl(item.thumbnail_url || "");
       setThumbnailPreview(item.thumbnail_url || null);
       setThumbnailFile(null);
       // is_showcased default to true if not set
@@ -70,10 +68,6 @@ export function EditForm({ item, type, onSubmit, onCancel }) {
       newErrors.youtubeLink = "Please enter a valid URL";
     }
     
-    // Thumbnail URL validation
-    if (thumbnailUrl && !isValidUrl(thumbnailUrl)) {
-      newErrors.thumbnailUrl = "Please enter a valid URL";
-    }
     
     // Team members is optional - no validation needed
     
@@ -142,7 +136,7 @@ export function EditForm({ item, type, onSubmit, onCancel }) {
     setIsUploading(false);
     
     try {
-      let finalThumbnailUrl = thumbnailUrl.trim() || null;
+      let finalThumbnailUrl = null;
 
       // Upload file if selected
       if (thumbnailFile) {
@@ -159,6 +153,9 @@ export function EditForm({ item, type, onSubmit, onCancel }) {
         }
         
         setIsUploading(false);
+      } else if (item?.thumbnail_url && !thumbnailFile) {
+        // Keep existing thumbnail if no new file uploaded
+        finalThumbnailUrl = item.thumbnail_url;
       }
 
       const formData = {
@@ -189,7 +186,8 @@ export function EditForm({ item, type, onSubmit, onCancel }) {
       setTeamMembers(item.team_members || []);
       setYoutubeLink(item.youtube_link || "");
       setTags(item.tags || []);
-      setThumbnailUrl(item.thumbnail_url || "");
+      setThumbnailPreview(item.thumbnail_url || null);
+      setThumbnailFile(null);
       setIsShowcased(item.is_showcased !== false);
     }
     setErrors({});
@@ -250,13 +248,13 @@ export function EditForm({ item, type, onSubmit, onCancel }) {
         )}
       </div>
       
-      {/* YouTube Link */}
+      {/* Demo Link */}
       <Input
-        label="YouTube Link (Optional)"
+        label="Demo Link (Optional)"
         type="url"
         value={youtubeLink}
         onChange={(e) => setYoutubeLink(e.target.value)}
-        placeholder="https://youtube.com/watch?v=..."
+        placeholder="https://youtube.com/watch?v=... or any demo URL"
         error={errors.youtubeLink}
       />
       
@@ -311,23 +309,6 @@ export function EditForm({ item, type, onSubmit, onCancel }) {
             </label>
           </div>
 
-          {/* Or URL Input */}
-          <div className="text-center text-xs text-[var(--foreground)]/60">or</div>
-          
-          <Input
-            label="Or enter URL"
-            type="url"
-            value={thumbnailUrl}
-            onChange={(e) => {
-              setThumbnailUrl(e.target.value);
-              if (e.target.value && isValidUrl(e.target.value)) {
-                setThumbnailPreview(e.target.value);
-              }
-            }}
-            placeholder="https://example.com/image.jpg"
-            error={errors.thumbnailUrl || errors.thumbnail}
-            disabled={!!thumbnailFile}
-          />
         </div>
 
         {/* Preview */}

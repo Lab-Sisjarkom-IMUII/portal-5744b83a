@@ -167,7 +167,8 @@ export function DetailPage() {
   const description = data.showcase_description || data.description || "";
   const thumbnailUrl = data.thumbnail_url;
   const owner = data.owner || data.user;
-  const deployUrl = data.deploy_url;
+  // Gunakan deploy_url jika ada, jika tidak gunakan domain dengan protokol https
+  const deployUrl = data.deploy_url || (data.domain ? `https://${data.domain}` : null);
   const youtubeLink = data.youtube_link;
   const tags = data.tags || [];
   const teamMembers = data.team_members || [];

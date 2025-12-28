@@ -54,7 +54,6 @@ export function TeamMemberInput({ members = [], onChange }) {
             onChange={(e) => setNewMember({ ...newMember, name: e.target.value })}
             onKeyPress={handleKeyPress}
             placeholder="Team member name"
-            required
           />
           
           <div className="grid grid-cols-2 gap-3">
