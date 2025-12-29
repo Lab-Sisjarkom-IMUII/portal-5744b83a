@@ -66,22 +66,22 @@ export function StatsOverview({ projects = [], portfolios = [] }) {
   };
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-8">
       {statCards.map((stat) => {
         const Icon = stat.icon;
         return (
-          <Card key={stat.label} className="p-6">
+          <Card key={stat.label} className="p-4 sm:p-6">
             <div className="flex items-center justify-between">
-              <div className="flex-1">
-                <p className="text-sm text-[var(--foreground)]/60 mb-1">
+              <div className="flex-1 min-w-0">
+                <p className="text-xs sm:text-sm text-[var(--foreground)]/60 mb-1">
                   {stat.label}
                 </p>
-                <p className="text-3xl font-bold text-[var(--foreground)]">
+                <p className="text-2xl sm:text-3xl font-bold text-[var(--foreground)]">
                   {stat.value}
                 </p>
               </div>
-              <div className={`p-3 rounded-lg ${colorClasses[stat.color]}`}>
-                <Icon className="h-6 w-6" />
+              <div className={`p-2 sm:p-3 rounded-lg flex-shrink-0 ${colorClasses[stat.color]}`}>
+                <Icon className="h-5 w-5 sm:h-6 sm:w-6" />
               </div>
             </div>
           </Card>

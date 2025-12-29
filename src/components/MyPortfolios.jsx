@@ -77,8 +77,8 @@ export function MyPortfolios({ onRefetch }) {
   return (
     <div className="space-y-4">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold text-[var(--foreground)]">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+        <h2 className="text-xl sm:text-2xl font-bold text-[var(--foreground)]">
           My Portfolios ({portfolios.length})
         </h2>
         <Button
@@ -87,6 +87,7 @@ export function MyPortfolios({ onRefetch }) {
           onClick={() => {
             window.open("https://imuii.id/create", "_blank", "noopener,noreferrer");
           }}
+          className="w-full sm:w-auto min-h-[44px] sm:min-h-0"
         >
           <Plus className="h-4 w-4 mr-1" />
           Create New
@@ -110,7 +111,7 @@ export function MyPortfolios({ onRefetch }) {
           </Button>
         </Card>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
           {portfolios.map((portfolio) => {
             const portfolioName = getPortfolioName(portfolio);
             const thumbnailUrl = portfolio.thumbnail_url;
@@ -144,12 +145,12 @@ export function MyPortfolios({ onRefetch }) {
                 </div>
 
                 {/* Content */}
-                <div className="p-4 space-y-3">
-                  <h3 className="font-semibold text-[var(--foreground)] line-clamp-2">
+                <div className="p-3 sm:p-4 space-y-3">
+                  <h3 className="text-sm sm:text-base font-semibold text-[var(--foreground)] line-clamp-2">
                     {portfolioName}
                   </h3>
                   {description && (
-                    <p className="text-sm text-[var(--foreground)]/70 line-clamp-2">
+                    <p className="text-xs sm:text-sm text-[var(--foreground)]/70 line-clamp-2">
                       {description}
                     </p>
                   )}
@@ -176,7 +177,7 @@ export function MyPortfolios({ onRefetch }) {
                         e.stopPropagation();
                         navigate(`/portfolio/${portfolio.id}/edit`);
                       }}
-                      className="flex-1"
+                      className="flex-1 min-h-[44px] sm:min-h-0"
                     >
                       <Edit className="h-4 w-4 mr-1" />
                       Edit
@@ -188,7 +189,8 @@ export function MyPortfolios({ onRefetch }) {
                         e.stopPropagation();
                         handleDelete(portfolio.id, portfolioName);
                       }}
-                      className="text-red-500 hover:bg-red-500/10 hover:text-red-600"
+                      className="text-red-500 hover:bg-red-500/10 hover:text-red-600 min-h-[44px] sm:min-h-0 min-w-[44px] sm:min-w-0"
+                      title="Delete"
                     >
                       <Trash2 className="h-4 w-4" />
                     </Button>

@@ -53,7 +53,7 @@ export function SearchBar({ value, onChange, placeholder = "Search..." }) {
         value={localValue}
         onChange={handleChange}
         placeholder={placeholder}
-        className="w-full pl-10 pr-10 py-2 bg-[var(--card)] border border-[var(--border)] rounded-lg text-[var(--foreground)] placeholder:text-[var(--foreground)]/50 focus:outline-none focus:ring-2 focus:ring-[var(--primary)]/50 focus:border-[var(--primary)] transition-all duration-200"
+        className="w-full pl-10 pr-10 py-2 sm:py-2 bg-[var(--card)] border border-[var(--border)] rounded-lg text-sm sm:text-base text-[var(--foreground)] placeholder:text-[var(--foreground)]/50 focus:outline-none focus:ring-2 focus:ring-[var(--primary)]/50 focus:border-[var(--primary)] transition-all duration-200 min-h-[44px] sm:min-h-0"
       />
       
       {localValue && (

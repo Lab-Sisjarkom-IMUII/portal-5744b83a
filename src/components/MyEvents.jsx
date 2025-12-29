@@ -80,7 +80,7 @@ export function MyEvents() {
     <div className="space-y-4">
       {/* Header */}
       <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold text-[var(--foreground)]">
+        <h2 className="text-xl sm:text-2xl font-bold text-[var(--foreground)]">
           Events yang Diikuti ({events.length})
         </h2>
       </div>
@@ -96,23 +96,23 @@ export function MyEvents() {
           </p>
         </Card>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
           {events.map((event) => (
-            <Card key={event.id} className="p-4 space-y-3">
+            <Card key={event.id} className="p-3 sm:p-4 space-y-3">
               <div className="flex items-start justify-between gap-2">
-                <div>
-                  <h3 className="text-lg font-semibold text-[var(--foreground)]">
+                <div className="min-w-0 flex-1">
+                  <h3 className="text-base sm:text-lg font-semibold text-[var(--foreground)] break-words">
                     {event.name}
                   </h3>
                   {event.description && (
-                    <p className="text-sm text-[var(--foreground)]/70 line-clamp-2">
+                    <p className="text-xs sm:text-sm text-[var(--foreground)]/70 line-clamp-2 mt-1">
                       {event.description}
                     </p>
                   )}
                 </div>
                 <span
                   className={`
-                    px-2 py-1 rounded-full text-xs font-medium
+                    px-2 py-1 rounded-full text-xs font-medium flex-shrink-0
                     ${
                       event.status === "active"
                         ? "bg-green-500/20 text-green-400"
@@ -128,8 +128,8 @@ export function MyEvents() {
 
               <div className="text-xs text-[var(--foreground)]/60 space-y-1">
                 <p className="flex items-center gap-1">
-                  <Calendar className="h-3 w-3" />
-                  <span>
+                  <Calendar className="h-3 w-3 flex-shrink-0" />
+                  <span className="break-words">
                     {formatDate(event.start_date)} -{" "}
                     {formatDate(event.end_date)}
                   </span>
@@ -149,6 +149,7 @@ export function MyEvents() {
                   variant="secondary"
                   size="sm"
                   onClick={() => navigate(`/events/${event.id}`)}
+                  className="w-full sm:w-auto min-h-[44px] sm:min-h-0"
                 >
                   View Event
                 </Button>

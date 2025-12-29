@@ -17,10 +17,10 @@ export function FilterBar({
   hasActiveFilters = false,
 }) {
   return (
-    <div className="flex flex-wrap items-center gap-4 p-4 bg-[var(--card)] border border-[var(--border)] rounded-lg">
+    <div className="flex flex-col sm:flex-row sm:flex-wrap sm:items-center gap-3 sm:gap-4 p-3 sm:p-4 bg-[var(--card)] border border-[var(--border)] rounded-lg">
       {/* Type Filter */}
-      <div className="flex items-center gap-2">
-        <label className="text-sm font-medium text-[var(--foreground)]/70">
+      <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+        <label className="text-xs sm:text-sm font-medium text-[var(--foreground)]/70">
           Type:
         </label>
         <div className="flex gap-2">
@@ -28,7 +28,7 @@ export function FilterBar({
             <button
               key={type}
               onClick={() => onFilterChange("type", type)}
-              className={`px-3 py-1 text-sm rounded-lg transition-colors ${
+              className={`px-3 py-2 text-xs sm:text-sm rounded-lg transition-colors min-h-[44px] sm:min-h-0 ${
                 filters.type === type
                   ? "bg-[var(--primary)] text-[var(--primary-foreground)]"
                   : "bg-[var(--muted)] text-[var(--foreground)]/70 hover:bg-[var(--muted)]/80"
@@ -41,14 +41,14 @@ export function FilterBar({
       </div>
 
       {/* Owner Filter */}
-      <div className="flex items-center gap-2">
-        <label className="text-sm font-medium text-[var(--foreground)]/70">
+      <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+        <label className="text-xs sm:text-sm font-medium text-[var(--foreground)]/70">
           Owner:
         </label>
         <select
           value={filters.owner}
           onChange={(e) => onFilterChange("owner", e.target.value)}
-          className="px-3 py-1 text-sm bg-[var(--card)] border border-[var(--border)] rounded-lg text-[var(--foreground)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)]/50 focus:border-[var(--primary)]"
+          className="px-3 py-2 text-xs sm:text-sm bg-[var(--card)] border border-[var(--border)] rounded-lg text-[var(--foreground)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)]/50 focus:border-[var(--primary)] min-h-[44px] sm:min-h-0"
         >
           <option value="all">All Owners</option>
           {owners.map((owner) => (
@@ -60,14 +60,14 @@ export function FilterBar({
       </div>
 
       {/* Sort Filter */}
-      <div className="flex items-center gap-2">
-        <label className="text-sm font-medium text-[var(--foreground)]/70">
+      <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+        <label className="text-xs sm:text-sm font-medium text-[var(--foreground)]/70">
           Sort:
         </label>
         <select
           value={filters.sort}
           onChange={(e) => onFilterChange("sort", e.target.value)}
-          className="px-3 py-1 text-sm bg-[var(--card)] border border-[var(--border)] rounded-lg text-[var(--foreground)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)]/50 focus:border-[var(--primary)]"
+          className="px-3 py-2 text-xs sm:text-sm bg-[var(--card)] border border-[var(--border)] rounded-lg text-[var(--foreground)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)]/50 focus:border-[var(--primary)] min-h-[44px] sm:min-h-0"
         >
           <option value="newest">Newest First</option>
           <option value="oldest">Oldest First</option>
@@ -82,7 +82,7 @@ export function FilterBar({
           variant="secondary"
           size="sm"
           onClick={onClearFilters}
-          className="ml-auto"
+          className="w-full sm:w-auto sm:ml-auto min-h-[44px] sm:min-h-0"
         >
           <X className="h-4 w-4 mr-1" />
           Clear Filters

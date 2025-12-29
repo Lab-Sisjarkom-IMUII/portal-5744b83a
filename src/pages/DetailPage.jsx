@@ -259,7 +259,7 @@ export function DetailPage() {
   };
   
   return (
-    <div className="py-8">
+    <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 max-w-7xl">
       {/* Back Button */}
       <Button
         variant="secondary"
@@ -273,11 +273,11 @@ export function DetailPage() {
       
       {/* Hero Section */}
       <div className="mb-8">
-        <div className="flex items-start justify-between gap-4 mb-4">
-          <div className="flex-1">
-            <div className="flex items-center gap-3 mb-2">
+        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-4">
+          <div className="flex-1 min-w-0">
+            <div className="flex flex-wrap items-center gap-2 sm:gap-3 mb-2">
               <span
-                className={`px-3 py-1 text-sm font-medium rounded-full ${
+                className={`px-2 sm:px-3 py-1 text-xs sm:text-sm font-medium rounded-full ${
                   type === "project"
                     ? "bg-blue-500/20 text-blue-400"
                     : "bg-purple-500/20 text-purple-400"
@@ -285,12 +285,12 @@ export function DetailPage() {
               >
                 {type === "project" ? "Project" : "Portfolio"}
               </span>
-              <span className="px-3 py-1 text-sm font-medium rounded-full bg-green-500/20 text-green-400">
+              <span className="px-2 sm:px-3 py-1 text-xs sm:text-sm font-medium rounded-full bg-green-500/20 text-green-400">
                 Deployed
               </span>
               {isOwner && (
                 <span
-                  className={`px-3 py-1 text-sm font-medium rounded-full flex items-center gap-1 ${
+                  className={`px-2 sm:px-3 py-1 text-xs sm:text-sm font-medium rounded-full flex items-center gap-1 ${
                     isShowcased
                       ? "bg-green-500/20 text-green-400"
                       : "bg-gray-500/20 text-gray-400"
@@ -310,14 +310,14 @@ export function DetailPage() {
                 </span>
               )}
             </div>
-            <h1 className="text-4xl font-bold text-[var(--foreground)] mb-4">
+            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-[var(--foreground)] mb-4 break-words">
               {title}
             </h1>
           </div>
           
           {/* Owner Actions */}
           {isOwner && (
-            <div className="flex items-center gap-2">
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 flex-shrink-0">
               {/* Quick Toggle Visibility */}
               <Button
                 variant={isShowcased ? "secondary" : "accent"}
@@ -325,18 +325,19 @@ export function DetailPage() {
                 onClick={handleToggleVisibility}
                 disabled={isToggling}
                 title={isShowcased ? "Hide from showcase" : "Show in showcase"}
+                className="min-h-[44px] sm:min-h-0"
               >
                 {isToggling ? (
                   <Spinner size="sm" />
                 ) : isShowcased ? (
                   <>
                     <EyeOff className="h-4 w-4 mr-1" />
-                    Hide
+                    <span className="hidden sm:inline">Hide</span>
                   </>
                 ) : (
                   <>
                     <Eye className="h-4 w-4 mr-1" />
-                    Show
+                    <span className="hidden sm:inline">Show</span>
                   </>
                 )}
               </Button>
@@ -346,6 +347,7 @@ export function DetailPage() {
                 variant="primary"
                 size="sm"
                 onClick={() => navigate(isProject ? `/project/${id}/edit` : `/portfolio/${id}/edit`)}
+                className="min-h-[44px] sm:min-h-0"
               >
                 <Edit className="h-4 w-4 mr-1" />
                 Edit
@@ -369,11 +371,11 @@ export function DetailPage() {
       {/* Description Section */}
       {description && (
         <div className="mb-8">
-          <h2 className="text-2xl font-semibold text-[var(--foreground)] mb-4">
+          <h2 className="text-xl sm:text-2xl font-semibold text-[var(--foreground)] mb-4">
             Description
           </h2>
           <div className="prose prose-invert max-w-none">
-            <p className="text-[var(--foreground)]/80 leading-relaxed whitespace-pre-wrap">
+            <p className="text-sm sm:text-base text-[var(--foreground)]/80 leading-relaxed whitespace-pre-wrap break-words">
               {description}
             </p>
           </div>
@@ -382,16 +384,16 @@ export function DetailPage() {
       
       {/* Info Section */}
       <div className="mb-8">
-        <h2 className="text-2xl font-semibold text-[var(--foreground)] mb-4">
+        <h2 className="text-xl sm:text-2xl font-semibold text-[var(--foreground)] mb-4">
           Information
         </h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
           {owner && (
-            <div className="flex items-center gap-3 p-4 bg-[var(--card)] border border-[var(--border)] rounded-lg">
-              <User className="h-5 w-5 text-[var(--foreground)]/60" />
-              <div>
-                <p className="text-sm text-[var(--foreground)]/60">Owner</p>
-                <p className="font-medium text-[var(--foreground)]">
+            <div className="flex items-center gap-3 p-3 sm:p-4 bg-[var(--card)] border border-[var(--border)] rounded-lg">
+              <User className="h-5 w-5 text-[var(--foreground)]/60 flex-shrink-0" />
+              <div className="min-w-0">
+                <p className="text-xs sm:text-sm text-[var(--foreground)]/60">Owner</p>
+                <p className="font-medium text-sm sm:text-base text-[var(--foreground)] truncate">
                   {owner.name || owner.email || "Unknown"}
                 </p>
               </div>
@@ -399,11 +401,11 @@ export function DetailPage() {
           )}
           
           {createdDate && (
-            <div className="flex items-center gap-3 p-4 bg-[var(--card)] border border-[var(--border)] rounded-lg">
-              <Calendar className="h-5 w-5 text-[var(--foreground)]/60" />
-              <div>
-                <p className="text-sm text-[var(--foreground)]/60">Created</p>
-                <p className="font-medium text-[var(--foreground)]">
+            <div className="flex items-center gap-3 p-3 sm:p-4 bg-[var(--card)] border border-[var(--border)] rounded-lg">
+              <Calendar className="h-5 w-5 text-[var(--foreground)]/60 flex-shrink-0" />
+              <div className="min-w-0">
+                <p className="text-xs sm:text-sm text-[var(--foreground)]/60">Created</p>
+                <p className="font-medium text-sm sm:text-base text-[var(--foreground)]">
                   {formatDate(createdDate)}
                 </p>
               </div>
@@ -414,14 +416,15 @@ export function DetailPage() {
       
       {/* Links Section */}
       <div className="mb-8">
-        <h2 className="text-2xl font-semibold text-[var(--foreground)] mb-4">
+        <h2 className="text-xl sm:text-2xl font-semibold text-[var(--foreground)] mb-4">
           Links
         </h2>
-        <div className="flex flex-wrap gap-3">
+        <div className="flex flex-col sm:flex-row flex-wrap gap-2 sm:gap-3">
           {deployUrl && (
             <Button
               variant="accent"
               onClick={() => window.open(deployUrl, "_blank", "noopener,noreferrer")}
+              className="w-full sm:w-auto min-h-[44px] sm:min-h-0"
             >
               <ExternalLink className="h-4 w-4 mr-2" />
               Visit Website
@@ -432,6 +435,7 @@ export function DetailPage() {
             <Button
               variant="secondary"
               onClick={() => window.open(youtubeLink, "_blank", "noopener,noreferrer")}
+              className="w-full sm:w-auto min-h-[44px] sm:min-h-0"
             >
               <Youtube className="h-4 w-4 mr-2" />
               Watch on YouTube
@@ -442,6 +446,7 @@ export function DetailPage() {
             <Button
               variant="secondary"
               onClick={() => window.open(repoUrl, "_blank", "noopener,noreferrer")}
+              className="w-full sm:w-auto min-h-[44px] sm:min-h-0"
             >
               <ExternalLink className="h-4 w-4 mr-2" />
               View Repository
@@ -453,10 +458,10 @@ export function DetailPage() {
       {/* Team Members Section */}
       {teamMembers.length > 0 && (
         <div className="mb-8">
-          <h2 className="text-2xl font-semibold text-[var(--foreground)] mb-4">
+          <h2 className="text-xl sm:text-2xl font-semibold text-[var(--foreground)] mb-4">
             Team Members
           </h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
             {teamMembers.map((member, index) => (
               <TeamMemberCard key={index} member={member} />
             ))}
@@ -467,14 +472,14 @@ export function DetailPage() {
       {/* Tags Section */}
       {tags.length > 0 && (
         <div className="mb-8">
-          <h2 className="text-2xl font-semibold text-[var(--foreground)] mb-4">
+          <h2 className="text-xl sm:text-2xl font-semibold text-[var(--foreground)] mb-4">
             Tags
           </h2>
           <div className="flex flex-wrap gap-2">
             {tags.map((tag, index) => (
               <span
                 key={index}
-                className="px-3 py-1 bg-[var(--primary)]/20 text-[var(--primary)] rounded-full text-sm font-medium"
+                className="px-2 sm:px-3 py-1 bg-[var(--primary)]/20 text-[var(--primary)] rounded-full text-xs sm:text-sm font-medium"
               >
                 {tag}
               </span>
@@ -486,8 +491,8 @@ export function DetailPage() {
       {/* Joined Events (Project Only) */}
       {isProject && (
         <div className="mb-8">
-          <div className="flex items-center justify-between gap-3 mb-4">
-            <h2 className="text-2xl font-semibold text-[var(--foreground)]">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
+            <h2 className="text-xl sm:text-2xl font-semibold text-[var(--foreground)]">
               Joined Events
             </h2>
             {isOwner && (
@@ -495,6 +500,7 @@ export function DetailPage() {
                 variant="secondary"
                 size="sm"
                 onClick={() => setManageEventsOpen(true)}
+                className="w-full sm:w-auto min-h-[44px] sm:min-h-0"
               >
                 Manage Events
               </Button>
@@ -519,22 +525,22 @@ export function DetailPage() {
               </p>
             </Card>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
               {joinedEvents.map((evt) => (
-                <Card key={evt.id} className="p-4 space-y-2">
+                <Card key={evt.id} className="p-3 sm:p-4 space-y-2">
                   <div className="flex items-start justify-between gap-2">
-                    <div>
-                      <p className="text-base font-semibold text-[var(--foreground)]">
+                    <div className="min-w-0 flex-1">
+                      <p className="text-sm sm:text-base font-semibold text-[var(--foreground)] break-words">
                         {evt.name}
                       </p>
                       {evt.description && (
-                        <p className="text-sm text-[var(--foreground)]/70 line-clamp-2">
+                        <p className="text-xs sm:text-sm text-[var(--foreground)]/70 line-clamp-2 mt-1">
                           {evt.description}
                         </p>
                       )}
                     </div>
                     <span
-                      className={`px-2 py-1 rounded-full text-xs font-medium ${
+                      className={`px-2 py-1 rounded-full text-xs font-medium flex-shrink-0 ${
                         evt.status === "active"
                           ? "bg-green-500/20 text-green-400"
                           : evt.status === "upcoming"
@@ -546,11 +552,12 @@ export function DetailPage() {
                     </span>
                   </div>
 
-                  <div className="flex items-center justify-between pt-2 border-t border-[var(--border)]">
+                  <div className="flex flex-col sm:flex-row items-stretch sm:items-center sm:justify-between gap-2 pt-2 border-t border-[var(--border)]">
                     <Button
                       variant="secondary"
                       size="sm"
                       onClick={() => navigate(`/events/${evt.id}`)}
+                      className="w-full sm:w-auto min-h-[44px] sm:min-h-0"
                     >
                       View Event
                     </Button>
@@ -561,6 +568,7 @@ export function DetailPage() {
                         onClick={() => handleLeaveEventForProject(evt.id)}
                         loading={actionByEventId?.[evt.id] === "leave"}
                         disabled={actionByEventId?.[evt.id] === "leave"}
+                        className="w-full sm:w-auto min-h-[44px] sm:min-h-0"
                       >
                         Leave
                       </Button>
@@ -626,11 +634,11 @@ export function DetailPage() {
                   return (
                     <Card
                       key={evt.id}
-                      className="p-3 flex flex-col md:flex-row md:items-center justify-between gap-3"
+                      className="p-3 sm:p-4 flex flex-col md:flex-row md:items-center justify-between gap-3"
                     >
-                      <div className="min-w-0">
-                        <div className="flex items-center gap-2">
-                          <p className="text-sm font-semibold text-[var(--foreground)] truncate">
+                      <div className="min-w-0 flex-1">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <p className="text-sm font-semibold text-[var(--foreground)] break-words">
                             {evt.name}
                           </p>
                           <span
@@ -661,11 +669,12 @@ export function DetailPage() {
                         )}
                       </div>
 
-                      <div className="flex items-center gap-2 flex-shrink-0">
+                      <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 flex-shrink-0">
                         <Button
                           variant="secondary"
                           size="sm"
                           onClick={() => navigate(`/events/${evt.id}`)}
+                          className="w-full sm:w-auto min-h-[44px] sm:min-h-0"
                         >
                           View
                         </Button>
@@ -677,6 +686,7 @@ export function DetailPage() {
                               onClick={() => handleLeaveEventForProject(evt.id)}
                               loading={isActing && actionType === "leave"}
                               disabled={isActing}
+                              className="w-full sm:w-auto min-h-[44px] sm:min-h-0"
                             >
                               Leave
                             </Button>
@@ -687,6 +697,7 @@ export function DetailPage() {
                               onClick={() => handleJoinEventForProject(evt.id)}
                               loading={isActing && actionType === "join"}
                               disabled={isActing}
+                              className="w-full sm:w-auto min-h-[44px] sm:min-h-0"
                             >
                               Join
                             </Button>
@@ -704,7 +715,7 @@ export function DetailPage() {
       
       {/* Share Buttons */}
       <div className="mb-8">
-        <h2 className="text-2xl font-semibold text-[var(--foreground)] mb-4">
+        <h2 className="text-xl sm:text-2xl font-semibold text-[var(--foreground)] mb-4">
           Share
         </h2>
         <ShareButtons url={currentUrl} title={title} description={description} />
