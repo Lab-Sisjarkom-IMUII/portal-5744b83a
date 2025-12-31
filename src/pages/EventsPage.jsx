@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { getEvents } from "../services/eventService";
 import { Card } from "../components/Card";
 import { Button } from "../components/Button";
-import { Spinner } from "../components/Spinner";
+import { CardSkeleton } from "../components/CardSkeleton";
 
 const STATUS_OPTIONS = [
   { value: "all", label: "All" },
@@ -97,12 +97,33 @@ export function EventsPage() {
 
   if (loading) {
     return (
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-12 max-w-7xl">
-        <div className="flex flex-col items-center gap-4">
-          <Spinner />
-          <p className="text-[var(--foreground)]/60 text-sm">
-            Memuat daftar events...
-          </p>
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 max-w-7xl">
+        {/* Header / Hero Skeleton */}
+        <div className="mb-8">
+          <div className="h-8 bg-[var(--muted)] rounded w-48 mb-2 animate-pulse" />
+          <div className="h-4 bg-[var(--muted)] rounded w-96 max-w-full animate-pulse" />
+        </div>
+
+        {/* Filters Skeleton */}
+        <div className="mb-6 flex flex-col md:flex-row gap-4 items-start md:items-center justify-between">
+          <div className="flex flex-wrap gap-2">
+            {[...Array(4)].map((_, i) => (
+              <div key={i} className="h-9 bg-[var(--muted)] rounded-full w-20 animate-pulse" />
+            ))}
+          </div>
+          <div className="h-10 bg-[var(--muted)] rounded-lg w-full md:w-64 animate-pulse" />
+        </div>
+
+        {/* Results count skeleton */}
+        <div className="mb-4">
+          <div className="h-4 bg-[var(--muted)] rounded w-32 animate-pulse" />
+        </div>
+
+        {/* Cards Skeleton */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {[...Array(6)].map((_, i) => (
+            <CardSkeleton key={i} />
+          ))}
         </div>
       </div>
     );

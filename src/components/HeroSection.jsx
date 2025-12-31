@@ -1,5 +1,7 @@
-import { Sparkles, Rocket, Users, Award } from "lucide-react";
+import { Sparkles, Rocket, Users, Award, Calendar } from "lucide-react";
 import { motion } from "framer-motion";
+import { Link } from "react-router-dom";
+import { Button } from "./Button";
 
 /**
  * HeroSection component untuk showcase page
@@ -42,6 +44,31 @@ export function HeroSection() {
               designers, and creators. Each showcase represents hours of dedication, 
               creativity, and technical expertise.
             </p>
+          </motion.div>
+
+          {/* Event Information Section */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.15 }}
+            className="mb-12"
+          >
+            <div className="inline-flex items-center gap-2 px-6 py-4 rounded-xl bg-accent/10 border border-accent/20 backdrop-blur-sm">
+              <Calendar className="w-5 h-5 text-accent" />
+              <div className="text-left">
+                <p className="text-sm font-semibold text-foreground mb-1">
+                  Ada Event Menarik!
+                </p>
+                <p className="text-xs text-foreground/70 mb-3">
+                  Portal ini juga menyediakan berbagai event untuk menampilkan dan mengapresiasi project-project terbaik.
+                </p>
+                <Link to="/events">
+                  <Button variant="accent" size="sm">
+                    Lihat Events
+                  </Button>
+                </Link>
+              </div>
+            </div>
           </motion.div>
 
           {/* Stats/Features */}
