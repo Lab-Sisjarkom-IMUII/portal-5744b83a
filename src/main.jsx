@@ -4,6 +4,7 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import './index.css'
 import { AuthProvider } from './contexts/AuthContext'
 import { Layout } from './components/Layout'
+import { ScrollToTop } from './components/ScrollToTop'
 import { ProtectedRoute } from './components/ProtectedRoute'
 import { ShowcasePage } from './pages/ShowcasePage'
 import { EventsPage } from './pages/EventsPage'
@@ -17,6 +18,7 @@ import { LoginCallback } from './pages/LoginCallback'
 function App() {
   return (
     <BrowserRouter>
+      <ScrollToTop />
       <AuthProvider>
         <Layout>
           <Routes>
