@@ -42,11 +42,22 @@ export function useProjects() {
       // Handle response format
       if (response.projects) {
         setProjects(response.projects);
-        setPagination(response.pagination || pagination);
+        setPagination({
+          page: typeof response.page === "number" ? response.page : pagination.page,
+          limit: typeof response.limit === "number" ? response.limit : pagination.limit,
+          total: typeof response.total === "number"
+            ? response.total
+            : response.pagination?.total || response.projects.length || 0,
+        });
       } else if (Array.isArray(response)) {
         setProjects(response);
+        setPagination((prev) => ({
+          ...prev,
+          total: response.length,
+        }));
       } else {
         setProjects([]);
+        setPagination((prev) => ({ ...prev, total: 0 }));
       }
     } catch (err) {
       console.error("Failed to fetch projects:", err);
@@ -65,12 +76,30 @@ export function useProjects() {
     fetchProjects();
   };
 
+  const setPage = (page) => {
+    setPagination((prev) => ({
+      ...prev,
+      page: Math.max(1, page),
+    }));
+  };
+
+  const setLimit = (limit) => {
+    if (!limit || limit <= 0) return;
+    setPagination((prev) => ({
+      ...prev,
+      limit,
+      page: 1,
+    }));
+  };
+
   return {
     projects,
     loading,
     error,
     pagination,
     refetch,
+    setPage,
+    setLimit,
   };
 }
 

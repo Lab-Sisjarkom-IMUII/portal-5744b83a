@@ -4,6 +4,8 @@ import { getEvents } from "../services/eventService";
 import { Card } from "../components/Card";
 import { Button } from "../components/Button";
 import { CardSkeleton } from "../components/CardSkeleton";
+import { SearchBar } from "../components/SearchBar";
+import { Pagination } from "../components/Pagination";
 
 const STATUS_OPTIONS = [
   { value: "all", label: "All" },
@@ -19,6 +21,11 @@ export function EventsPage() {
   const [error, setError] = useState(null);
   const [statusFilter, setStatusFilter] = useState("active");
   const [searchQuery, setSearchQuery] = useState("");
+  const [pagination, setPagination] = useState({
+    page: 1,
+    limit: 9,
+    total: 0,
+  });
 
   useEffect(() => {
     let isMounted = true;
@@ -28,14 +35,20 @@ export function EventsPage() {
       setError(null);
 
       try {
-        const { events: fetchedEvents } = await getEvents({
+        const response = await getEvents({
           status: statusFilter,
-          page: 1,
-          limit: 100,
+          page: pagination.page,
+          limit: pagination.limit,
         });
 
         if (isMounted) {
-          setEvents(Array.isArray(fetchedEvents) ? fetchedEvents : []);
+          setEvents(Array.isArray(response?.events) ? response.events : []);
+          setPagination((prev) => ({
+            ...prev,
+            page: typeof response?.page === "number" ? response.page : prev.page,
+            limit: typeof response?.limit === "number" ? response.limit : prev.limit,
+            total: typeof response?.total === "number" ? response.total : (response?.events?.length || 0),
+          }));
         }
       } catch (err) {
         if (isMounted) {
@@ -55,7 +68,11 @@ export function EventsPage() {
     return () => {
       isMounted = false;
     };
-  }, [statusFilter]);
+  }, [statusFilter, pagination.page, pagination.limit]);
+
+  useEffect(() => {
+    setPagination((prev) => ({ ...prev, page: 1 }));
+  }, [statusFilter, searchQuery]);
 
   const filteredEvents = useMemo(() => {
     if (!searchQuery.trim()) return events;
@@ -179,23 +196,23 @@ export function EventsPage() {
         </div>
 
         <div className="w-full md:w-64">
-          <input
-            type="text"
+          <SearchBar
             value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
+            onChange={setSearchQuery}
             placeholder="Cari event..."
-            className="w-full px-3 py-2 rounded-lg border border-[var(--border)] bg-[var(--background)] text-sm focus:outline-none focus:ring-2 focus:ring-[var(--primary)]"
           />
         </div>
       </div>
 
       {/* Results count */}
       <div className="mb-4 text-sm text-[var(--foreground)]/60">
-        {filteredEvents.length === events.length ? (
+        {searchQuery.trim() ? (
+          <span>Menampilkan {filteredEvents.length} event di halaman ini</span>
+        ) : filteredEvents.length === events.length ? (
           <span>Menampilkan {events.length} event</span>
         ) : (
           <span>
-            Menampilkan {filteredEvents.length} dari {events.length} event
+            Menampilkan {filteredEvents.length} dari {pagination.total} event
           </span>
         )}
       </div>
@@ -264,6 +281,13 @@ export function EventsPage() {
           ))}
         </div>
       )}
+
+      <Pagination
+        currentPage={pagination.page}
+        totalPages={Math.max(1, Math.ceil((pagination.total || 0) / (pagination.limit || 1)))}
+        onPageChange={(page) => setPagination((prev) => ({ ...prev, page }))}
+        className="mt-8"
+      />
     </div>
   );
 }

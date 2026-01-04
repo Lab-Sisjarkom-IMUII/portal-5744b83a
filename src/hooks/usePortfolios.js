@@ -42,11 +42,22 @@ export function usePortfolios() {
       // Handle response format
       if (response.portfolios) {
         setPortfolios(response.portfolios);
-        setPagination(response.pagination || pagination);
+        setPagination({
+          page: typeof response.page === "number" ? response.page : pagination.page,
+          limit: typeof response.limit === "number" ? response.limit : pagination.limit,
+          total: typeof response.total === "number"
+            ? response.total
+            : response.pagination?.total || response.portfolios.length || 0,
+        });
       } else if (Array.isArray(response)) {
         setPortfolios(response);
+        setPagination((prev) => ({
+          ...prev,
+          total: response.length,
+        }));
       } else {
         setPortfolios([]);
+        setPagination((prev) => ({ ...prev, total: 0 }));
       }
     } catch (err) {
       console.error("Failed to fetch portfolios:", err);
@@ -65,12 +76,29 @@ export function usePortfolios() {
     fetchPortfolios();
   };
 
+  const setPage = (page) => {
+    setPagination((prev) => ({
+      ...prev,
+      page: Math.max(1, page),
+    }));
+  };
+
+  const setLimit = (limit) => {
+    if (!limit || limit <= 0) return;
+    setPagination((prev) => ({
+      ...prev,
+      limit,
+      page: 1,
+    }));
+  };
+
   return {
     portfolios,
     loading,
     error,
     pagination,
     refetch,
+    setPage,
+    setLimit,
   };
 }
-

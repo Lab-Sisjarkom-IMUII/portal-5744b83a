@@ -6,6 +6,7 @@ import { Button } from "./Button";
 import { DeleteConfirmModal } from "./DeleteConfirmModal";
 import { deleteProject } from "../services/projectService";
 import { useProjects } from "../hooks/useProjects";
+import { Pagination } from "./Pagination";
 
 /**
  * MyProjects Component
@@ -14,7 +15,14 @@ import { useProjects } from "../hooks/useProjects";
  */
 export function MyProjects({ onRefetch }) {
   const navigate = useNavigate();
-  const { projects, loading, error, refetch } = useProjects();
+  const {
+    projects,
+    loading,
+    error,
+    pagination,
+    refetch,
+    setPage,
+  } = useProjects();
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [deletingId, setDeletingId] = useState(null);
   const [deleting, setDeleting] = useState(false);
@@ -79,7 +87,7 @@ export function MyProjects({ onRefetch }) {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <h2 className="text-xl sm:text-2xl font-bold text-[var(--foreground)]">
-          My Projects ({projects.length})
+          My Projects ({pagination?.total ?? projects.length})
         </h2>
         <Button
           variant="primary"
@@ -201,6 +209,12 @@ export function MyProjects({ onRefetch }) {
           })}
         </div>
       )}
+
+      <Pagination
+        currentPage={pagination.page}
+        totalPages={Math.max(1, Math.ceil((pagination.total || 0) / (pagination.limit || 1)))}
+        onPageChange={setPage}
+      />
 
       {/* Delete Confirmation Modal */}
       <DeleteConfirmModal

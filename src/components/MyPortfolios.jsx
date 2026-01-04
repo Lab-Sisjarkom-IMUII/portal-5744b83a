@@ -6,6 +6,7 @@ import { Button } from "./Button";
 import { DeleteConfirmModal } from "./DeleteConfirmModal";
 import { deletePortfolio } from "../services/portfolioService";
 import { usePortfolios } from "../hooks/usePortfolios";
+import { Pagination } from "./Pagination";
 
 /**
  * MyPortfolios Component
@@ -14,7 +15,14 @@ import { usePortfolios } from "../hooks/usePortfolios";
  */
 export function MyPortfolios({ onRefetch }) {
   const navigate = useNavigate();
-  const { portfolios, loading, error, refetch } = usePortfolios();
+  const {
+    portfolios,
+    loading,
+    error,
+    pagination,
+    refetch,
+    setPage,
+  } = usePortfolios();
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [deletingId, setDeletingId] = useState(null);
   const [deleting, setDeleting] = useState(false);
@@ -79,7 +87,7 @@ export function MyPortfolios({ onRefetch }) {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <h2 className="text-xl sm:text-2xl font-bold text-[var(--foreground)]">
-          My Portfolios ({portfolios.length})
+          My Portfolios ({pagination?.total ?? portfolios.length})
         </h2>
         <Button
           variant="primary"
@@ -202,6 +210,12 @@ export function MyPortfolios({ onRefetch }) {
         </div>
       )}
 
+      <Pagination
+        currentPage={pagination.page}
+        totalPages={Math.max(1, Math.ceil((pagination.total || 0) / (pagination.limit || 1)))}
+        onPageChange={setPage}
+      />
+
       {/* Delete Confirmation Modal */}
       <DeleteConfirmModal
         isOpen={deleteModalOpen}
@@ -215,4 +229,3 @@ export function MyPortfolios({ onRefetch }) {
     </div>
   );
 }
-

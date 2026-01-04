@@ -14,6 +14,7 @@ import { Spinner } from "../components/Spinner";
 import { Modal } from "../components/Modal";
 import { ProjectCard } from "../components/ProjectCard";
 import { SearchBar } from "../components/SearchBar";
+import { Pagination } from "../components/Pagination";
 
 export function EventDetailPage() {
   const { id } = useParams();
@@ -36,6 +37,8 @@ export function EventDetailPage() {
   const [filters, setFilters] = useState({
     sort: "newest",
   });
+  const [currentPage, setCurrentPage] = useState(1);
+  const pageSize = 9;
 
   const isEnded = event?.status === "ended";
 
@@ -121,6 +124,14 @@ export function EventDetailPage() {
 
     return filtered;
   }, [eventProjects, searchQuery, filters]);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery, filters]);
+
+  const totalPages = Math.max(1, Math.ceil(filteredProjects.length / pageSize));
+  const startIndex = (currentPage - 1) * pageSize;
+  const pagedProjects = filteredProjects.slice(startIndex, startIndex + pageSize);
 
   // Get unique owners for filter
   const uniqueOwners = useMemo(() => {
@@ -370,7 +381,7 @@ export function EventDetailPage() {
           </p>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {filteredProjects.map((project) => {
+            {pagedProjects.map((project) => {
               const isMyProject = (projects || []).some(
                 (p) => p.id === project.id
               );
@@ -408,6 +419,14 @@ export function EventDetailPage() {
             })}
           </div>
         )}
+      </div>
+
+      <div className="mt-8">
+        <Pagination
+          currentPage={currentPage}
+          totalPages={totalPages}
+          onPageChange={setCurrentPage}
+        />
       </div>
 
       {/* Register Modal */}

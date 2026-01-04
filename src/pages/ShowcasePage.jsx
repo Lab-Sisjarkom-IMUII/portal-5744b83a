@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useShowcase } from "../hooks/useShowcase";
 import { Spinner } from "../components/Spinner";
 import { Button } from "../components/Button";
@@ -7,6 +7,7 @@ import { ProjectCard } from "../components/ProjectCard";
 import { SearchBar } from "../components/SearchBar";
 import { FilterBar } from "../components/FilterBar";
 import { HeroSection } from "../components/HeroSection";
+import { Pagination } from "../components/Pagination";
 
 /**
  * Showcase Page
@@ -18,6 +19,8 @@ export function ShowcasePage() {
   const [typeFilter, setTypeFilter] = useState("all");
   const [ownerFilter, setOwnerFilter] = useState("all");
   const [sortBy, setSortBy] = useState("newest");
+  const [currentPage, setCurrentPage] = useState(1);
+  const pageSize = 12;
 
   // Get unique owners untuk filter
   const uniqueOwners = useMemo(() => {
@@ -95,6 +98,14 @@ export function ShowcasePage() {
 
     return filtered;
   }, [items, searchQuery, typeFilter, ownerFilter, sortBy]);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery, typeFilter, ownerFilter, sortBy]);
+
+  const totalPages = Math.max(1, Math.ceil(filteredItems.length / pageSize));
+  const startIndex = (currentPage - 1) * pageSize;
+  const pagedItems = filteredItems.slice(startIndex, startIndex + pageSize);
 
   // Handle filter changes
   const handleFilterChange = (filterType, value) => {
@@ -244,11 +255,18 @@ export function ShowcasePage() {
         ) : (
           /* Grid Layout */
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {filteredItems.map((item) => (
+            {pagedItems.map((item) => (
               <ProjectCard key={`${item.type}-${item.id}`} item={item} />
             ))}
           </div>
         )}
+
+        <Pagination
+          currentPage={currentPage}
+          totalPages={totalPages}
+          onPageChange={setCurrentPage}
+          className="mt-8"
+        />
       </div>
     </div>
   );
