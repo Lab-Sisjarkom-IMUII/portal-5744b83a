@@ -1,6 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import { ExternalLink, Youtube, Calendar } from "lucide-react";
 import { Card } from "./Card";
+import { generateSlug } from "../utils/slug";
 
 /**
  * ProjectCard component untuk display project/portfolio di showcase
@@ -19,7 +20,14 @@ export function ProjectCard({ item }) {
   const createdDate = item.created_at || item.updated_at;
   
   const handleClick = () => {
-    const path = item.type === "project" ? `/project/${item.id}` : `/portfolio/${item.id}`;
+    // Generate slug from title/name for better URLs
+    const title = item.showcase_title || item.name || "";
+    const slug = generateSlug(title);
+    const identifier = slug || item.id;
+    
+    const path = item.type === "project" 
+      ? `/project/${identifier}` 
+      : `/portfolio/${identifier}`;
     navigate(path);
   };
   

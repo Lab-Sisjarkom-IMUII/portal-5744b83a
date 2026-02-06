@@ -1,13 +1,16 @@
-import { Sparkles, Rocket, Users, Award, Calendar } from "lucide-react";
+import { Sparkles, Rocket, Users, Award, Calendar, Bot } from "lucide-react";
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import { Button } from "./Button";
+import { useChatbot } from "../contexts/ChatbotContext";
 
 /**
  * HeroSection component untuk showcase page
  * Menampilkan introduction yang menarik dengan copywriting yang bagus
  */
 export function HeroSection() {
+  const { openChatbot } = useChatbot();
+
   return (
     <div className="relative overflow-hidden py-16 md:py-24">
       {/* Background gradient effects */}
@@ -44,6 +47,22 @@ export function HeroSection() {
               designers, and creators. Each showcase represents hours of dedication, 
               creativity, and technical expertise.
             </p>
+
+            {/* Chatbot CTA */}
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-3 mb-8">
+              <Button
+                variant="accent"
+                size="lg"
+                onClick={openChatbot}
+                className="inline-flex items-center gap-2"
+              >
+                <Bot className="w-5 h-5" />
+                Cari dengan AI Chatbot
+              </Button>
+              <p className="text-sm text-foreground/60">
+                Atau jelajahi showcase di bawah
+              </p>
+            </div>
           </motion.div>
 
           {/* Event Information Section */}

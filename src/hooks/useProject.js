@@ -1,21 +1,21 @@
 import { useState, useEffect } from "react";
-import { getProjectById } from "../services/projectService";
+import { getProjectByIdentifier } from "../services/projectService";
 import { getDummyProjectById } from "../data/dummyData";
 import { USE_DUMMY_DATA } from "../config/config";
 
 /**
  * useProject hook
- * Fetch single project by ID
- * @param {string} projectId - Project ID
+ * Fetch single project by ID or name/slug
+ * @param {string} identifier - Project ID or name/slug
  * @returns {Object} { project, loading, error, refetch }
  */
-export function useProject(projectId) {
+export function useProject(identifier) {
   const [project, setProject] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    if (!projectId) {
+    if (!identifier) {
       setLoading(false);
       return;
     }
@@ -26,8 +26,8 @@ export function useProject(projectId) {
 
       try {
         const projectData = USE_DUMMY_DATA
-          ? await getDummyProjectById(projectId)
-          : await getProjectById(projectId);
+          ? await getDummyProjectById(identifier)
+          : await getProjectByIdentifier(identifier);
         setProject(projectData);
       } catch (err) {
         console.error("Failed to fetch project:", err);
@@ -39,18 +39,18 @@ export function useProject(projectId) {
     };
 
     fetchProject();
-  }, [projectId]);
+  }, [identifier]);
 
   const refetch = async () => {
-    if (!projectId) return;
+    if (!identifier) return;
 
     setLoading(true);
     setError(null);
 
     try {
       const projectData = USE_DUMMY_DATA
-        ? await getDummyProjectById(projectId)
-        : await getProjectById(projectId);
+        ? await getDummyProjectById(identifier)
+        : await getProjectByIdentifier(identifier);
       setProject(projectData);
     } catch (err) {
       console.error("Failed to refetch project:", err);

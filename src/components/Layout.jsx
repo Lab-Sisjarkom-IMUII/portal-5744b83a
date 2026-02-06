@@ -1,5 +1,6 @@
 import { Navbar } from "./Navbar";
 import { Footer } from "./Footer";
+import { Chatbot } from "./Chatbot";
 
 /**
  * Layout component - wrapper untuk semua pages
@@ -15,6 +16,8 @@ export function Layout({ children }) {
         </div>
       </main>
       <Footer />
+      {/* Chatbot - Always accessible, z-index 60 (above modals z-50) */}
+      <Chatbot />
     </div>
   );
 }

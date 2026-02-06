@@ -1,4 +1,5 @@
 import { apiGet, apiPut, apiDelete } from "./apiClient";
+import { isUUID } from "../utils/slug";
 
 const BASE_ENDPOINT = "/api/v1/projects";
 
@@ -39,6 +40,110 @@ export async function getProjectById(id) {
   } catch (error) {
     console.error("Failed to get project by ID:", error);
     throw error;
+  }
+}
+
+/**
+ * Get project by name/slug
+ * Uses showcase API to search projects, then filters by name
+ * Similar to how dashboard filters projects by name
+ * @param {string} name - Project name or slug
+ * @returns {Promise<Object>} Project data (first match)
+ */
+export async function getProjectByName(name) {
+  try {
+    // Use showcase API to get all projects, then filter by name
+    const response = await getShowcasedProjects(1, 100);
+    
+    // Handle different response formats
+    let projects = [];
+    if (Array.isArray(response)) {
+      projects = response;
+    } else if (response.projects && Array.isArray(response.projects)) {
+      projects = response.projects;
+    } else if (response.data && Array.isArray(response.data)) {
+      projects = response.data;
+    }
+    
+    // Normalize name for comparison (lowercase, trim)
+    const normalizedName = name.toLowerCase().trim();
+    const normalizedSlug = normalizedName.replace(/\s+/g, "-");
+    
+    // Find project by exact name match or slug match
+    // Priority: exact match > slug match > partial match
+    let project = projects.find((p) => {
+      const projectName = (p.showcase_title || p.name || "").toLowerCase().trim();
+      const projectSlug = projectName.replace(/\s+/g, "-");
+      
+      return projectName === normalizedName || projectSlug === normalizedSlug;
+    });
+    
+    // If no exact match, try partial match
+    if (!project) {
+      project = projects.find((p) => {
+        const projectName = (p.showcase_title || p.name || "").toLowerCase().trim();
+        const projectSlug = projectName.replace(/\s+/g, "-");
+        
+        return (
+          projectName.includes(normalizedName) ||
+          projectSlug.includes(normalizedSlug) ||
+          normalizedName.includes(projectName) ||
+          normalizedSlug.includes(projectSlug)
+        );
+      });
+    }
+    
+    if (!project) {
+      throw new Error(`Project dengan nama "${name}" tidak ditemukan`);
+    }
+    
+    return project;
+  } catch (error) {
+    console.error("Failed to get project by name:", error);
+    throw error;
+  }
+}
+
+/**
+ * Get project by identifier (ID or name/slug)
+ * Tries ID first if UUID format, otherwise tries name/slug
+ * @param {string} identifier - Project ID or name/slug
+ * @returns {Promise<Object>} Project data
+ */
+export async function getProjectByIdentifier(identifier) {
+  if (!identifier) {
+    throw new Error("Identifier is required");
+  }
+
+  // Check if it's UUID format (ID)
+  if (isUUID(identifier)) {
+    // Try as ID first
+    try {
+      return await getProjectById(identifier);
+    } catch (error) {
+      // If ID fails, try as name/slug (fallback)
+      console.warn("Failed to get project by ID, trying by name:", error);
+      try {
+        return await getProjectByName(identifier);
+      } catch (nameError) {
+        // Re-throw original ID error
+        throw error;
+      }
+    }
+  } else {
+    // Try as name/slug first
+    try {
+      return await getProjectByName(identifier);
+    } catch (error) {
+      // If name fails, try as ID (in case it's a non-standard ID format)
+      console.warn("Failed to get project by name, trying as ID:", error);
+      try {
+        return await getProjectById(identifier);
+      } catch (idError) {
+        // Re-throw original name error
+        throw error;
+      }
+    }
   }
 }
 
