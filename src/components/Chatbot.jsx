@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { MessageCircle, X, Send, Minimize2 } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, useDragControls } from "framer-motion";
 import { sendChatMessage } from "../services/chatbotService";
 import { getSessionId } from "../utils/session";
 import { TypingIndicator } from "./TypingIndicator";
@@ -16,6 +16,7 @@ export function Chatbot() {
   const { isOpen: contextIsOpen, openChatbot, closeChatbot } = useChatbot();
   const [isOpen, setIsOpen] = useState(contextIsOpen);
   const [isMinimized, setIsMinimized] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
   const [messages, setMessages] = useState([]);
   const [inputValue, setInputValue] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -25,6 +26,28 @@ export function Chatbot() {
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
   const chatWindowRef = useRef(null);
+  const dragControls = useDragControls();
+
+  // Detect mobile (Tailwind sm breakpoint: 640px)
+  useEffect(() => {
+    if (typeof window === "undefined" || !window.matchMedia) return;
+
+    const mediaQuery = window.matchMedia("(max-width: 639px)");
+    const update = () => setIsMobile(mediaQuery.matches);
+
+    update();
+
+    if (typeof mediaQuery.addEventListener === "function") {
+      mediaQuery.addEventListener("change", update);
+      return () => mediaQuery.removeEventListener("change", update);
+    }
+
+    // Fallback for older browsers
+    // eslint-disable-next-line deprecation/deprecation
+    mediaQuery.addListener(update);
+    // eslint-disable-next-line deprecation/deprecation
+    return () => mediaQuery.removeListener(update);
+  }, []);
 
   // Auto scroll to bottom when new messages arrive
   const scrollToBottom = useCallback(() => {
@@ -245,6 +268,21 @@ export function Chatbot() {
       <AnimatePresence>
         {isOpen && (
           <>
+            {/* Backdrop (mobile bottom sheet) */}
+            {isMobile && (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.2 }}
+                className="fixed inset-0 z-[55] bg-black/50"
+                onClick={() => {
+                  closeChatbot();
+                  setIsMinimized(false);
+                }}
+                aria-hidden="true"
+              />
+            )}
             {/* Minimized Bar */}
             {isMinimized ? (
               <motion.div
@@ -252,7 +290,7 @@ export function Chatbot() {
                 animate={{ y: 0, opacity: 1 }}
                 exit={{ y: 100, opacity: 0 }}
                 transition={{ duration: 0.3 }}
-                className="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 z-[60] w-[calc(100%-2rem)] sm:w-80 bg-[var(--card)] border border-[var(--border)] rounded-lg shadow-xl p-3"
+                className="fixed bottom-4 left-4 right-4 sm:bottom-6 sm:right-6 sm:left-auto z-[60] w-[calc(100%-2rem)] sm:w-80 bg-[var(--card)] border border-[var(--border)] rounded-lg shadow-xl p-3"
               >
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
@@ -287,16 +325,44 @@ export function Chatbot() {
                 animate={{ y: 0, opacity: 1 }}
                 exit={{ y: "100%", opacity: 0 }}
                 transition={{ duration: 0.3, type: "spring", damping: 25 }}
+                drag={isMobile ? "y" : false}
+                dragListener={false}
+                dragControls={dragControls}
+                dragConstraints={isMobile ? { top: 0, bottom: 320 } : undefined}
+                dragElastic={isMobile ? { top: 0, bottom: 0.2 } : undefined}
+                onDragEnd={(_, info) => {
+                  if (!isMobile) return;
+                  const shouldClose = info.offset.y > 140 || info.velocity.y > 900;
+                  if (shouldClose) {
+                    closeChatbot();
+                    setIsMinimized(false);
+                  }
+                }}
                 className={`
-                  fixed bottom-4 right-4 sm:bottom-6 sm:right-6 z-[60]
-                  w-[calc(100%-2rem)] sm:w-[400px] sm:max-w-md
-                  h-[calc(100vh-2rem)] sm:h-[600px] sm:max-h-[85vh]
-                  bg-[var(--card)] border border-[var(--border)] rounded-lg shadow-xl
+                  fixed z-[60]
+                  ${
+                    isMobile
+                      ? "inset-x-0 bottom-0 w-full h-[85vh] max-h-[90vh] rounded-t-2xl rounded-b-none"
+                      : "bottom-4 right-4 sm:bottom-6 sm:right-6 w-[calc(100%-2rem)] sm:w-[400px] sm:max-w-md h-[calc(100vh-2rem)] sm:h-[600px] sm:max-h-[85vh] rounded-lg"
+                  }
+                  bg-[var(--card)] border border-[var(--border)] shadow-xl
                   flex flex-col
                 `}
               >
                 {/* Header */}
-                <div className="flex items-center justify-between p-4 border-b border-[var(--border)]">
+                <div className={`relative flex items-center justify-between p-4 border-b border-[var(--border)] ${isMobile ? "pt-7" : ""}`}>
+                  {/* Drag handle (mobile) */}
+                  {isMobile && (
+                    <div className="absolute left-0 right-0 top-2 flex justify-center">
+                      <div
+                        className="w-12 h-1.5 rounded-full bg-[var(--foreground)]/20 cursor-grab active:cursor-grabbing"
+                        onPointerDown={(e) => dragControls.start(e)}
+                        role="button"
+                        tabIndex={0}
+                        aria-label="Drag handle"
+                      />
+                    </div>
+                  )}
                   <div className="flex items-center gap-2">
                     <MessageCircle className="w-5 h-5 text-[var(--accent)]" />
                     <h3 className="text-lg font-semibold text-[var(--foreground)]">
@@ -304,13 +370,15 @@ export function Chatbot() {
                     </h3>
                   </div>
                   <div className="flex items-center gap-1">
-                    <button
-                      onClick={minimizeChat}
-                      className="p-1.5 hover:bg-[var(--muted)] rounded transition-colors"
-                      aria-label="Minimize chat"
-                    >
-                      <Minimize2 className="w-4 h-4 text-[var(--foreground)]" />
-                    </button>
+                    {!isMobile && (
+                      <button
+                        onClick={minimizeChat}
+                        className="p-1.5 hover:bg-[var(--muted)] rounded transition-colors"
+                        aria-label="Minimize chat"
+                      >
+                        <Minimize2 className="w-4 h-4 text-[var(--foreground)]" />
+                      </button>
+                    )}
                     <button
                       onClick={toggleChat}
                       className="p-1.5 hover:bg-[var(--muted)] rounded transition-colors"
